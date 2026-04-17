@@ -8,12 +8,14 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import numpy as np
 import pandas as pd
 from loguru import logger
 
-from src.models.base import BaseModel
+if TYPE_CHECKING:
+    from src.models.base import BaseModel
 
 
 @dataclass
@@ -58,7 +60,9 @@ class ModelExplainer:
         x_arr = np.asarray(x)
         if len(x_arr) > max_samples:
             indices = np.random.default_rng(42).choice(
-                len(x_arr), max_samples, replace=False,
+                len(x_arr),
+                max_samples,
+                replace=False,
             )
             x_sample = x_arr[indices]
         else:
@@ -74,7 +78,8 @@ class ModelExplainer:
             # Fallback to KernelExplainer
             background = shap.kmeans(x_sample, min(10, len(x_sample)))
             self._explainer = shap.KernelExplainer(
-                self.model.predict, background,
+                self.model.predict,
+                background,
             )
             shap_values = self._explainer.shap_values(x_sample)
 
@@ -100,7 +105,9 @@ class ModelExplainer:
         return report
 
     def explain_single(
-        self, x_single: np.ndarray, top_k: int = 10,
+        self,
+        x_single: np.ndarray,
+        top_k: int = 10,
     ) -> dict[str, float]:
         """Explain a single prediction.
 
@@ -123,12 +130,16 @@ class ModelExplainer:
 
         contributions = dict(zip(self.feature_names, sv.flatten(), strict=False))
         sorted_contribs = sorted(
-            contributions.items(), key=lambda x: abs(x[1]), reverse=True,
+            contributions.items(),
+            key=lambda x: abs(x[1]),
+            reverse=True,
         )
         return dict(sorted_contribs[:top_k])
 
     def save_report(
-        self, report: ExplainabilityReport, output_dir: str | Path,
+        self,
+        report: ExplainabilityReport,
+        output_dir: str | Path,
     ) -> Path:
         """Save explainability report to disk."""
         output_dir = Path(output_dir)
@@ -148,9 +159,13 @@ class ModelExplainer:
 def _is_tree_model(estimator: object) -> bool:
     """Check if estimator is a tree-based model."""
     tree_types = (
-        "XGBClassifier", "XGBRegressor",
-        "LGBMClassifier", "LGBMRegressor",
-        "RandomForestClassifier", "RandomForestRegressor",
-        "GradientBoostingClassifier", "GradientBoostingRegressor",
+        "XGBClassifier",
+        "XGBRegressor",
+        "LGBMClassifier",
+        "LGBMRegressor",
+        "RandomForestClassifier",
+        "RandomForestRegressor",
+        "GradientBoostingClassifier",
+        "GradientBoostingRegressor",
     )
     return type(estimator).__name__ in tree_types

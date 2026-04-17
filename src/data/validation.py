@@ -7,13 +7,16 @@ anomaly detection, and schema drift detection.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from typing import TYPE_CHECKING
 
 import numpy as np
-import pandas as pd
 from loguru import logger
 
 from src.config import DataConfig, get_config
 from src.constants import COL_CYCLE, COL_ENGINE_ID
+
+if TYPE_CHECKING:
+    import pandas as pd
 
 
 @dataclass
@@ -77,9 +80,7 @@ class DataValidator:
         Returns:
             ValidationReport with all findings.
         """
-        report = ValidationReport(
-            total_rows=len(df), total_columns=len(df.columns)
-        )
+        report = ValidationReport(total_rows=len(df), total_columns=len(df.columns))
 
         logger.info("Validating {} rows, {} columns", len(df), len(df.columns))
 
@@ -99,13 +100,9 @@ class DataValidator:
     def _check_empty(self, df: pd.DataFrame, report: ValidationReport) -> None:
         """Check if DataFrame is empty."""
         if df.empty:
-            report.add_issue(
-                ValidationIssue("error", "all", "DataFrame is empty")
-            )
+            report.add_issue(ValidationIssue("error", "all", "DataFrame is empty"))
 
-    def _check_missing_values(
-        self, df: pd.DataFrame, report: ValidationReport
-    ) -> None:
+    def _check_missing_values(self, df: pd.DataFrame, report: ValidationReport) -> None:
         """Check for missing values exceeding threshold."""
         for col in df.columns:
             missing_count = df[col].isna().sum()
@@ -133,20 +130,14 @@ class DataValidator:
                     )
                 )
 
-    def _check_required_columns(
-        self, df: pd.DataFrame, report: ValidationReport
-    ) -> None:
+    def _check_required_columns(self, df: pd.DataFrame, report: ValidationReport) -> None:
         """Check that required columns exist."""
         required = [COL_ENGINE_ID, COL_CYCLE]
         for col in required:
             if col not in df.columns:
-                report.add_issue(
-                    ValidationIssue("error", col, f"Required column '{col}' missing")
-                )
+                report.add_issue(ValidationIssue("error", col, f"Required column '{col}' missing"))
 
-    def _check_outliers(
-        self, df: pd.DataFrame, report: ValidationReport
-    ) -> None:
+    def _check_outliers(self, df: pd.DataFrame, report: ValidationReport) -> None:
         """Detect statistical outliers using z-score method."""
         numeric_cols = df.select_dtypes(include=[np.number]).columns
         skip_cols = {COL_ENGINE_ID, COL_CYCLE}
@@ -180,9 +171,7 @@ class DataValidator:
                     )
                 )
 
-    def _check_cycle_monotonicity(
-        self, df: pd.DataFrame, report: ValidationReport
-    ) -> None:
+    def _check_cycle_monotonicity(self, df: pd.DataFrame, report: ValidationReport) -> None:
         """Verify cycle numbers are monotonically increasing per engine."""
         if COL_ENGINE_ID not in df.columns or COL_CYCLE not in df.columns:
             return
@@ -199,9 +188,7 @@ class DataValidator:
                     )
                 )
 
-    def _check_value_ranges(
-        self, df: pd.DataFrame, report: ValidationReport
-    ) -> None:
+    def _check_value_ranges(self, df: pd.DataFrame, report: ValidationReport) -> None:
         """Check for physically impossible sensor values."""
         numeric_cols = df.select_dtypes(include=[np.number]).columns
         skip_cols = {COL_ENGINE_ID, COL_CYCLE}

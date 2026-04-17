@@ -7,10 +7,9 @@ and a unified training interface for all model types.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import numpy as np
-import pandas as pd
 from loguru import logger
 from sklearn.model_selection import TimeSeriesSplit
 
@@ -23,6 +22,9 @@ from src.constants import (
     TASK_CLASSIFICATION,
 )
 from src.models.base import BaseModel, ModelRegistry
+
+if TYPE_CHECKING:
+    import pandas as pd
 
 
 @dataclass
@@ -101,7 +103,10 @@ class ModelTrainer:
         return result
 
     def _cross_validate(
-        self, model: BaseModel, x: np.ndarray, y: np.ndarray,
+        self,
+        model: BaseModel,
+        x: np.ndarray,
+        y: np.ndarray,
     ) -> dict[str, list[float]]:
         """Run time-series aware cross-validation."""
         tscv = TimeSeriesSplit(n_splits=self.config.n_cv_splits)
@@ -142,7 +147,10 @@ def _clone_model(model: BaseModel) -> BaseModel:
 
 
 def _compute_fold_metrics(
-    model: BaseModel, x_val: np.ndarray, y_val: np.ndarray, is_classification: bool,
+    model: BaseModel,
+    x_val: np.ndarray,
+    y_val: np.ndarray,
+    is_classification: bool,
 ) -> dict[str, float]:
     """Compute metrics for a single CV fold."""
     from math import sqrt

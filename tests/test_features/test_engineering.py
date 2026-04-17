@@ -2,11 +2,14 @@
 
 from __future__ import annotations
 
-import pandas as pd
+from typing import TYPE_CHECKING
 
 from src.config import FeatureConfig
 from src.constants import COL_CYCLE, COL_ENGINE_ID, SENSOR_TEMPERATURE
 from src.features.engineering import FeatureEngineer
+
+if TYPE_CHECKING:
+    import pandas as pd
 
 
 class TestFeatureEngineer:
@@ -40,9 +43,11 @@ class TestFeatureEngineer:
 
         # For engine 1, the rolling mean at cycle 5 should only use cycles 1-5
         engine1 = result[result[COL_ENGINE_ID] == 1].sort_values(COL_CYCLE)
-        raw_values = sample_sensor_df[
-            sample_sensor_df[COL_ENGINE_ID] == 1
-        ].sort_values(COL_CYCLE)[SENSOR_TEMPERATURE].iloc[:5]
+        raw_values = (
+            sample_sensor_df[sample_sensor_df[COL_ENGINE_ID] == 1]
+            .sort_values(COL_CYCLE)[SENSOR_TEMPERATURE]
+            .iloc[:5]
+        )
 
         roll_col = f"{SENSOR_TEMPERATURE}_roll_mean_5"
         if roll_col in engine1.columns:

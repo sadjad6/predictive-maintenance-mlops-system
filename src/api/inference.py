@@ -7,13 +7,16 @@ predictions with confidence intervals and explanations.
 from __future__ import annotations
 
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import numpy as np
 from loguru import logger
 
-from src.api.schemas import SensorReading
 from src.config import AppConfig, get_config
 from src.models.base import BaseModel, SklearnModelWrapper
+
+if TYPE_CHECKING:
+    from src.api.schemas import SensorReading
 
 RISK_THRESHOLDS = {"critical": 0.8, "high": 0.6, "medium": 0.3}
 
@@ -118,7 +121,9 @@ class InferencePipeline:
         return model
 
     def _mock_failure_prediction(
-        self, reading: SensorReading, features: np.ndarray,
+        self,
+        reading: SensorReading,
+        features: np.ndarray,
     ) -> dict:
         """Generate a heuristic prediction when no model is loaded."""
         temp_risk = max(0, (reading.sensor_temperature - 550) / 50)
@@ -139,7 +144,9 @@ class InferencePipeline:
         }
 
     def _mock_rul_prediction(
-        self, reading: SensorReading, features: np.ndarray,
+        self,
+        reading: SensorReading,
+        features: np.ndarray,
     ) -> dict:
         """Generate a heuristic RUL when no model is loaded."""
         rul = max(5, 150 - reading.cycle * 0.5)

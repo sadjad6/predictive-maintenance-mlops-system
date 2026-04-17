@@ -6,9 +6,8 @@ and result caching.
 
 from __future__ import annotations
 
-from pathlib import Path
+from typing import TYPE_CHECKING
 
-import pandas as pd
 from loguru import logger
 from prefect import task
 
@@ -20,6 +19,11 @@ from src.data.validation import DataValidator, ValidationReport
 from src.features.engineering import FeatureEngineer
 from src.features.labeling import FailureLabeler
 from src.models.training import ModelTrainer
+
+if TYPE_CHECKING:
+    from pathlib import Path
+
+    import pandas as pd
 
 
 @task(name="generate_sensor_data", retries=2, retry_delay_seconds=10)
@@ -46,7 +50,8 @@ def validate_data(df: pd.DataFrame, config: AppConfig | None = None) -> Validati
 
 @task(name="ingest_data", retries=2, retry_delay_seconds=10)
 def ingest_data(
-    source_path: str | Path, config: AppConfig | None = None,
+    source_path: str | Path,
+    config: AppConfig | None = None,
 ) -> pd.DataFrame:
     """Ingest data from file."""
     cfg = config or get_config()
@@ -56,7 +61,8 @@ def ingest_data(
 
 @task(name="engineer_features", retries=1)
 def engineer_features(
-    df: pd.DataFrame, config: AppConfig | None = None,
+    df: pd.DataFrame,
+    config: AppConfig | None = None,
 ) -> tuple[pd.DataFrame, list[str]]:
     """Run feature engineering pipeline."""
     cfg = config or get_config()
@@ -67,7 +73,8 @@ def engineer_features(
 
 @task(name="add_labels", retries=1)
 def add_labels(
-    df: pd.DataFrame, config: AppConfig | None = None,
+    df: pd.DataFrame,
+    config: AppConfig | None = None,
 ) -> pd.DataFrame:
     """Add failure and RUL labels."""
     cfg = config or get_config()
@@ -79,7 +86,9 @@ def add_labels(
 
 @task(name="train_classification_models", retries=1)
 def train_classification_models(
-    df: pd.DataFrame, feature_cols: list[str], config: AppConfig | None = None,
+    df: pd.DataFrame,
+    feature_cols: list[str],
+    config: AppConfig | None = None,
 ) -> ModelTrainer:
     """Train all classification models."""
     from src.models.baseline import LogisticRegressionModel, RandomForestClassifierModel
@@ -109,7 +118,9 @@ def train_classification_models(
 
 @task(name="train_regression_models", retries=1)
 def train_regression_models(
-    df: pd.DataFrame, feature_cols: list[str], config: AppConfig | None = None,
+    df: pd.DataFrame,
+    feature_cols: list[str],
+    config: AppConfig | None = None,
 ) -> ModelTrainer:
     """Train all regression models for RUL."""
     from src.models.baseline import RandomForestRegressorModel
@@ -138,7 +149,8 @@ def train_regression_models(
 
 @task(name="select_best_model", retries=1)
 def select_best_model(
-    trainer: ModelTrainer, metric: str = METRIC_ROC_AUC,
+    trainer: ModelTrainer,
+    metric: str = METRIC_ROC_AUC,
     higher_is_better: bool = True,
 ) -> str:
     """Select the best model from the registry."""

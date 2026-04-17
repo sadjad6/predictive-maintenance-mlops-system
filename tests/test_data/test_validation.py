@@ -59,11 +59,13 @@ class TestDataValidator:
         assert not report.is_valid
 
     def test_non_monotonic_cycles_detected(self) -> None:
-        df = pd.DataFrame({
-            COL_ENGINE_ID: [1, 1, 1, 1],
-            COL_CYCLE: [1, 3, 2, 4],  # Non-monotonic
-            SENSOR_TEMPERATURE: [520, 521, 522, 523],
-        })
+        df = pd.DataFrame(
+            {
+                COL_ENGINE_ID: [1, 1, 1, 1],
+                COL_CYCLE: [1, 3, 2, 4],  # Non-monotonic
+                SENSOR_TEMPERATURE: [520, 521, 522, 523],
+            }
+        )
         validator = DataValidator()
         report = validator.validate(df)
         assert not report.is_valid

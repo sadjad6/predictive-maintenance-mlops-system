@@ -7,12 +7,14 @@ testing, and automated best-model recommendation.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from typing import TYPE_CHECKING
 
 import numpy as np
 import pandas as pd
 from loguru import logger
 
-from src.models.base import ModelRegistry
+if TYPE_CHECKING:
+    from src.models.base import ModelRegistry
 
 
 @dataclass
@@ -73,12 +75,17 @@ class ModelComparator:
         )
 
         logger.info(
-            "Best model: {} ({}={:.4f})", best_name, primary_metric, best_value,
+            "Best model: {} ({}={:.4f})",
+            best_name,
+            primary_metric,
+            best_value,
         )
         return result
 
     def _generate_recommendations(
-        self, table: pd.DataFrame, metric: str,
+        self,
+        table: pd.DataFrame,
+        metric: str,
     ) -> list[str]:
         """Generate human-readable recommendations."""
         recs: list[str] = []
@@ -91,10 +98,7 @@ class ModelComparator:
         second = table.iloc[1]
         diff = abs(best[metric] - second[metric])
 
-        recs.append(
-            f"Recommended: {best['model']} "
-            f"({metric}={best[metric]:.4f})"
-        )
+        recs.append(f"Recommended: {best['model']} ({metric}={best[metric]:.4f})")
 
         if diff < 0.01:
             recs.append(
@@ -102,10 +106,7 @@ class ModelComparator:
                 f"(difference: {diff:.4f}). Consider model complexity."
             )
         else:
-            recs.append(
-                f"Clear winner over {second['model']} "
-                f"(margin: {diff:.4f})"
-            )
+            recs.append(f"Clear winner over {second['model']} (margin: {diff:.4f})")
 
         # Check for overfitting signals
         if "task" in table.columns:
@@ -113,10 +114,7 @@ class ModelComparator:
             if len(clf_models) > 1 and metric in clf_models.columns:
                 values = clf_models[metric].values
                 if np.std(values) > 0.1:
-                    recs.append(
-                        "High variance across models — "
-                        "consider ensemble approaches."
-                    )
+                    recs.append("High variance across models — consider ensemble approaches.")
 
         return recs
 

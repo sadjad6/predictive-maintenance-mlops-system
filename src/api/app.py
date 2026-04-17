@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
+from typing import TYPE_CHECKING
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -11,6 +11,9 @@ from loguru import logger
 
 from src.api.inference import InferencePipeline
 from src.api.routes import router
+
+if TYPE_CHECKING:
+    from collections.abc import AsyncGenerator
 
 # Global inference pipeline instance
 pipeline = InferencePipeline()

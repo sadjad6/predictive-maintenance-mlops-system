@@ -7,10 +7,9 @@ with early stopping and learning rate scheduling.
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import numpy as np
-import pandas as pd
 import torch
 import torch.nn as nn
 from loguru import logger
@@ -20,18 +19,28 @@ from src.config import ModelConfig, get_config
 from src.constants import MODEL_LSTM, TASK_CLASSIFICATION
 from src.models.base import BaseModel
 
+if TYPE_CHECKING:
+    import pandas as pd
+
 
 class _LSTMNetwork(nn.Module):
     """PyTorch LSTM network architecture."""
 
     def __init__(
-        self, input_size: int, hidden_size: int, num_layers: int,
-        output_size: int, dropout: float = 0.2,
+        self,
+        input_size: int,
+        hidden_size: int,
+        num_layers: int,
+        output_size: int,
+        dropout: float = 0.2,
     ) -> None:
         super().__init__()
         self.lstm = nn.LSTM(
-            input_size, hidden_size, num_layers,
-            batch_first=True, dropout=dropout if num_layers > 1 else 0.0,
+            input_size,
+            hidden_size,
+            num_layers,
+            batch_first=True,
+            dropout=dropout if num_layers > 1 else 0.0,
         )
         self.fc = nn.Sequential(
             nn.Linear(hidden_size, hidden_size // 2),
@@ -50,7 +59,8 @@ class LSTMModel(BaseModel):
     """LSTM model for time-series predictive maintenance tasks."""
 
     def __init__(
-        self, task_type: str = TASK_CLASSIFICATION,
+        self,
+        task_type: str = TASK_CLASSIFICATION,
         config: ModelConfig | None = None,
     ) -> None:
         name = f"{MODEL_LSTM}_{task_type}"
@@ -61,7 +71,8 @@ class LSTMModel(BaseModel):
         self._input_size: int = 0
 
     def train(
-        self, x_train: np.ndarray | pd.DataFrame,
+        self,
+        x_train: np.ndarray | pd.DataFrame,
         y_train: np.ndarray | pd.Series,
     ) -> dict[str, float]:
         """Train the LSTM on sequential data.
@@ -80,26 +91,24 @@ class LSTMModel(BaseModel):
         output_size = 1
 
         self._network = _LSTMNetwork(
-            self._input_size, self.config.lstm_hidden_size,
-            self.config.lstm_num_layers, output_size,
+            self._input_size,
+            self.config.lstm_hidden_size,
+            self.config.lstm_num_layers,
+            output_size,
         ).to(self.device)
 
-        loss_fn = (
-            nn.BCEWithLogitsLoss() if self.task_type == TASK_CLASSIFICATION
-            else nn.MSELoss()
-        )
-        optimizer = torch.optim.Adam(
-            self._network.parameters(), lr=self.config.lstm_learning_rate
-        )
-        scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
-            optimizer, patience=5, factor=0.5
-        )
+        loss_fn = nn.BCEWithLogitsLoss() if self.task_type == TASK_CLASSIFICATION else nn.MSELoss()
+        optimizer = torch.optim.Adam(self._network.parameters(), lr=self.config.lstm_learning_rate)
+        scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=5, factor=0.5)
 
         dataset = TensorDataset(
-            torch.from_numpy(x_arr), torch.from_numpy(y_arr.reshape(-1, 1)),
+            torch.from_numpy(x_arr),
+            torch.from_numpy(y_arr.reshape(-1, 1)),
         )
         loader = DataLoader(
-            dataset, batch_size=self.config.lstm_batch_size, shuffle=True,
+            dataset,
+            batch_size=self.config.lstm_batch_size,
+            shuffle=True,
         )
 
         best_loss = float("inf")
@@ -122,7 +131,9 @@ class LSTMModel(BaseModel):
                 break
 
             if (epoch + 1) % 10 == 0:
-                logger.info("Epoch {}/{} — loss: {:.6f}", epoch + 1, self.config.lstm_epochs, epoch_loss)
+                logger.info(
+                    "Epoch {}/{} — loss: {:.6f}", epoch + 1, self.config.lstm_epochs, epoch_loss
+                )
 
         self._is_trained = True
         self.metadata.training_samples = len(x_arr)
@@ -167,14 +178,17 @@ class LSTMModel(BaseModel):
         path = Path(path)
         path.mkdir(parents=True, exist_ok=True)
         model_path = path / f"{self.model_name}.pt"
-        torch.save({
-            "state_dict": self._network.state_dict() if self._network else None,
-            "input_size": self._input_size,
-            "config": {
-                "hidden_size": self.config.lstm_hidden_size,
-                "num_layers": self.config.lstm_num_layers,
+        torch.save(
+            {
+                "state_dict": self._network.state_dict() if self._network else None,
+                "input_size": self._input_size,
+                "config": {
+                    "hidden_size": self.config.lstm_hidden_size,
+                    "num_layers": self.config.lstm_num_layers,
+                },
             },
-        }, model_path)
+            model_path,
+        )
         self._save_metadata(path)
         return model_path
 
@@ -185,14 +199,19 @@ class LSTMModel(BaseModel):
         self._input_size = checkpoint["input_size"]
         cfg = checkpoint["config"]
         self._network = _LSTMNetwork(
-            self._input_size, cfg["hidden_size"], cfg["num_layers"], 1,
+            self._input_size,
+            cfg["hidden_size"],
+            cfg["num_layers"],
+            1,
         ).to(self.device)
         self._network.load_state_dict(checkpoint["state_dict"])
         self._load_metadata(path)
         self._is_trained = True
 
     def _train_epoch(
-        self, loader: DataLoader, loss_fn: Any,
+        self,
+        loader: DataLoader,
+        loss_fn: Any,
         optimizer: torch.optim.Optimizer,
     ) -> float:
         total_loss = 0.0

@@ -6,11 +6,15 @@ and cross-sensor interactions — all per-engine with strict temporal ordering.
 
 from __future__ import annotations
 
-import pandas as pd
+from typing import TYPE_CHECKING
+
 from loguru import logger
 
 from src.config import FeatureConfig, get_config
 from src.constants import COL_CYCLE, COL_ENGINE_ID, COL_TIMESTAMP
+
+if TYPE_CHECKING:
+    import pandas as pd
 
 
 class FeatureEngineer:
@@ -67,14 +71,9 @@ class FeatureEngineer:
     def _get_sensor_columns(self, df: pd.DataFrame) -> list[str]:
         """Identify sensor columns (numeric, excluding IDs and metadata)."""
         exclude = {COL_ENGINE_ID, COL_CYCLE, COL_TIMESTAMP, "rul", "failure_within_window"}
-        return [
-            col for col in df.select_dtypes(include=["number"]).columns
-            if col not in exclude
-        ]
+        return [col for col in df.select_dtypes(include=["number"]).columns if col not in exclude]
 
-    def _add_rolling_features(
-        self, df: pd.DataFrame, sensor_cols: list[str]
-    ) -> pd.DataFrame:
+    def _add_rolling_features(self, df: pd.DataFrame, sensor_cols: list[str]) -> pd.DataFrame:
         """Add rolling mean, std, min, max for each sensor per engine."""
         for window in self.config.rolling_windows:
             for col in sensor_cols:
@@ -85,7 +84,7 @@ class FeatureEngineer:
                 min_col = f"{col}_roll_min_{window}"
                 max_col = f"{col}_roll_max_{window}"
 
-                rolling = grouped.transform(
+                grouped.transform(
                     lambda x: x.rolling(window, min_periods=1)  # noqa: B023
                 )
                 # We need to compute each stat separately
@@ -106,9 +105,7 @@ class FeatureEngineer:
 
         return df
 
-    def _add_lag_features(
-        self, df: pd.DataFrame, sensor_cols: list[str]
-    ) -> pd.DataFrame:
+    def _add_lag_features(self, df: pd.DataFrame, sensor_cols: list[str]) -> pd.DataFrame:
         """Add lagged sensor values per engine."""
         for lag in self.config.lag_periods:
             for col in sensor_cols:
@@ -117,9 +114,7 @@ class FeatureEngineer:
                 self._feature_columns.append(lag_col)
         return df
 
-    def _add_rate_of_change(
-        self, df: pd.DataFrame, sensor_cols: list[str]
-    ) -> pd.DataFrame:
+    def _add_rate_of_change(self, df: pd.DataFrame, sensor_cols: list[str]) -> pd.DataFrame:
         """Add first-order difference (rate of change) per engine."""
         for col in sensor_cols:
             diff_col = f"{col}_diff"
@@ -127,9 +122,7 @@ class FeatureEngineer:
             self._feature_columns.append(diff_col)
         return df
 
-    def _add_cross_sensor_features(
-        self, df: pd.DataFrame, sensor_cols: list[str]
-    ) -> pd.DataFrame:
+    def _add_cross_sensor_features(self, df: pd.DataFrame, sensor_cols: list[str]) -> pd.DataFrame:
         """Add interaction features between key sensor pairs."""
         if len(sensor_cols) < 2:
             return df

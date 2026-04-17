@@ -75,35 +75,39 @@ class KPIEngine:
         expected_failures = float(np.sum(failure_probs))
         prevented_failures = expected_failures * 0.85  # 85% detection rate assumption
 
-        failure_cost = (
-            self.config.downtime_cost_per_hour * self.config.avg_repair_hours
-        )
+        failure_cost = self.config.downtime_cost_per_hour * self.config.avg_repair_hours
         maintenance_cost = self.config.maintenance_cost
 
         kpis.estimated_annual_savings = round(
-            prevented_failures * (failure_cost - maintenance_cost), 2,
+            prevented_failures * (failure_cost - maintenance_cost),
+            2,
         )
         kpis.downtime_hours_prevented = round(
-            prevented_failures * self.config.avg_repair_hours, 1,
+            prevented_failures * self.config.avg_repair_hours,
+            1,
         )
         kpis.maintenance_events_scheduled = int(np.ceil(prevented_failures))
 
         if prevented_failures > 0:
             kpis.cost_per_prevented_failure = round(
-                maintenance_cost + (failure_cost * 0.1), 2,  # 10% partial downtime
+                maintenance_cost + (failure_cost * 0.1),
+                2,  # 10% partial downtime
             )
 
         # ROI (assuming $50K annual system cost)
         system_cost = 50_000.0
         if system_cost > 0:
             kpis.roi_percentage = round(
-                (kpis.estimated_annual_savings - system_cost) / system_cost * 100, 1,
+                (kpis.estimated_annual_savings - system_cost) / system_cost * 100,
+                1,
             )
 
         logger.info(
             "KPIs: {} machines, {} at risk, savings=${:,.0f}, ROI={:.1f}%",
-            kpis.total_machines, kpis.machines_at_risk,
-            kpis.estimated_annual_savings, kpis.roi_percentage,
+            kpis.total_machines,
+            kpis.machines_at_risk,
+            kpis.estimated_annual_savings,
+            kpis.roi_percentage,
         )
         return kpis
 
@@ -132,16 +136,19 @@ class KPIEngine:
             else:
                 priority, timing = "LOW", "Next scheduled maintenance"
 
-            schedule.append({
-                "engine_id": engine_id,
-                "failure_probability": round(prob, 4),
-                "estimated_rul": round(rul, 1),
-                "priority": priority,
-                "recommended_timing": timing,
-                "estimated_cost_if_missed": round(
-                    prob * self.config.downtime_cost_per_hour * self.config.avg_repair_hours, 2,
-                ),
-            })
+            schedule.append(
+                {
+                    "engine_id": engine_id,
+                    "failure_probability": round(prob, 4),
+                    "estimated_rul": round(rul, 1),
+                    "priority": priority,
+                    "recommended_timing": timing,
+                    "estimated_cost_if_missed": round(
+                        prob * self.config.downtime_cost_per_hour * self.config.avg_repair_hours,
+                        2,
+                    ),
+                }
+            )
 
         # Sort by priority (critical first)
         priority_order = {"CRITICAL": 0, "HIGH": 1, "MEDIUM": 2, "LOW": 3}

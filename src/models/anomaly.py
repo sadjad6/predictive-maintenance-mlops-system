@@ -6,10 +6,9 @@ Unsupervised anomaly detection to complement supervised failure prediction.
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import numpy as np
-import pandas as pd
 import torch
 import torch.nn as nn
 from loguru import logger
@@ -19,18 +18,26 @@ from torch.utils.data import DataLoader, TensorDataset
 from src.constants import MODEL_AUTOENCODER, MODEL_ISOLATION_FOREST, TASK_ANOMALY_DETECTION
 from src.models.base import BaseModel, SklearnModelWrapper
 
+if TYPE_CHECKING:
+    import pandas as pd
+
 
 class IsolationForestDetector(SklearnModelWrapper):
     """Isolation Forest for unsupervised anomaly detection."""
 
     def __init__(self, **kwargs: Any) -> None:
         params: dict[str, Any] = {
-            "n_estimators": 200, "contamination": 0.05,
-            "max_samples": "auto", "random_state": 42, "n_jobs": -1,
+            "n_estimators": 200,
+            "contamination": 0.05,
+            "max_samples": "auto",
+            "random_state": 42,
+            "n_jobs": -1,
         }
         params.update(kwargs)
         super().__init__(
-            MODEL_ISOLATION_FOREST, TASK_ANOMALY_DETECTION, IsolationForest(**params),
+            MODEL_ISOLATION_FOREST,
+            TASK_ANOMALY_DETECTION,
+            IsolationForest(**params),
         )
 
     def predict(self, x: np.ndarray | pd.DataFrame) -> np.ndarray:
@@ -49,11 +56,16 @@ class _AutoencoderNetwork(nn.Module):
         super().__init__()
         mid = (input_dim + encoding_dim) // 2
         self.encoder = nn.Sequential(
-            nn.Linear(input_dim, mid), nn.ReLU(), nn.Dropout(0.2),
-            nn.Linear(mid, encoding_dim), nn.ReLU(),
+            nn.Linear(input_dim, mid),
+            nn.ReLU(),
+            nn.Dropout(0.2),
+            nn.Linear(mid, encoding_dim),
+            nn.ReLU(),
         )
         self.decoder = nn.Sequential(
-            nn.Linear(encoding_dim, mid), nn.ReLU(), nn.Dropout(0.2),
+            nn.Linear(encoding_dim, mid),
+            nn.ReLU(),
+            nn.Dropout(0.2),
             nn.Linear(mid, input_dim),
         )
 
@@ -73,7 +85,8 @@ class AutoencoderDetector(BaseModel):
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     def train(
-        self, x_train: np.ndarray | pd.DataFrame,
+        self,
+        x_train: np.ndarray | pd.DataFrame,
         y_train: np.ndarray | pd.Series | None = None,
     ) -> dict[str, float]:
         """Train autoencoder on normal data to learn reconstruction."""
@@ -132,17 +145,23 @@ class AutoencoderDetector(BaseModel):
         path = Path(path)
         path.mkdir(parents=True, exist_ok=True)
         model_path = path / f"{self.model_name}.pt"
-        torch.save({
-            "state_dict": self._network.state_dict() if self._network else None,
-            "threshold": self._threshold, "encoding_dim": self._encoding_dim,
-        }, model_path)
+        torch.save(
+            {
+                "state_dict": self._network.state_dict() if self._network else None,
+                "threshold": self._threshold,
+                "encoding_dim": self._encoding_dim,
+            },
+            model_path,
+        )
         self._save_metadata(path)
         return model_path
 
     def load(self, path: str | Path) -> None:
         path = Path(path)
         checkpoint = torch.load(
-            path / f"{self.model_name}.pt", map_location=self.device, weights_only=False,
+            path / f"{self.model_name}.pt",
+            map_location=self.device,
+            weights_only=False,
         )
         self._threshold = checkpoint["threshold"]
         self._encoding_dim = checkpoint["encoding_dim"]

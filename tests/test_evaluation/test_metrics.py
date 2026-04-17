@@ -27,7 +27,12 @@ class TestMetricsCalculator:
         calc = MetricsCalculator()
         report = calc.evaluate_classification(y_true, y_pred, y_proba)
 
-        total = report.true_positives + report.false_positives + report.true_negatives + report.false_negatives
+        total = (
+            report.true_positives
+            + report.false_positives
+            + report.true_negatives
+            + report.false_negatives
+        )
         assert total == len(y_true)
 
     def test_cost_score_penalizes_false_negatives(self) -> None:

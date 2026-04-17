@@ -6,11 +6,15 @@ Remaining Useful Life (RUL) targets with strict temporal ordering.
 
 from __future__ import annotations
 
-import pandas as pd
+from typing import TYPE_CHECKING
+
 from loguru import logger
 
 from src.config import DataConfig, get_config
 from src.constants import COL_CYCLE, COL_ENGINE_ID, COL_FAILURE_LABEL, COL_RUL
+
+if TYPE_CHECKING:
+    import pandas as pd
 
 
 class FailureLabeler:
@@ -67,9 +71,7 @@ class FailureLabeler:
         A record is labeled 1 if RUL <= failure_window, meaning
         failure is expected within the next N cycles.
         """
-        df[COL_FAILURE_LABEL] = (
-            df[COL_RUL] <= self.config.failure_window
-        ).astype(int)
+        df[COL_FAILURE_LABEL] = (df[COL_RUL] <= self.config.failure_window).astype(int)
         return df
 
     def clip_rul(self, df: pd.DataFrame, max_rul: int = 125) -> pd.DataFrame:

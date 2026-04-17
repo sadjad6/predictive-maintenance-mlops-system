@@ -11,14 +11,16 @@ from abc import ABC, abstractmethod
 from dataclasses import asdict, dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import joblib
-import numpy as np
 import pandas as pd
 from loguru import logger
 
 from src.config import ModelConfig, get_config
+
+if TYPE_CHECKING:
+    import numpy as np
 
 
 @dataclass
@@ -27,9 +29,7 @@ class ModelMetadata:
 
     model_name: str
     task_type: str
-    trained_at: str = field(
-        default_factory=lambda: datetime.now(tz=UTC).isoformat()
-    )
+    trained_at: str = field(default_factory=lambda: datetime.now(tz=UTC).isoformat())
     metrics: dict[str, float] = field(default_factory=dict)
     hyperparameters: dict[str, Any] = field(default_factory=dict)
     feature_names: list[str] = field(default_factory=list)
@@ -166,9 +166,7 @@ class ModelRegistry:
     def save_registry(self) -> None:
         """Persist registry metadata to disk."""
         self._registry_path.parent.mkdir(parents=True, exist_ok=True)
-        registry_data = {
-            name: asdict(model.metadata) for name, model in self._models.items()
-        }
+        registry_data = {name: asdict(model.metadata) for name, model in self._models.items()}
         with open(self._registry_path, "w") as f:
             json.dump(registry_data, f, indent=2, default=str)
         logger.info("Saved model registry to {}", self._registry_path)

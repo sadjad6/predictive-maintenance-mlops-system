@@ -79,7 +79,7 @@ class BusinessConfig:
 class APIConfig:
     """Configuration for the FastAPI service."""
 
-    host: str = field(default_factory=lambda: os.getenv("API_HOST", "0.0.0.0"))
+    host: str = field(default_factory=lambda: os.getenv("API_HOST", "0.0.0.0"))  # noqa: S104
     port: int = field(default_factory=lambda: int(os.getenv("API_PORT", "8000")))
     workers: int = field(default_factory=lambda: int(os.getenv("API_WORKERS", "1")))
     log_level: str = field(default_factory=lambda: os.getenv("LOG_LEVEL", "info"))
@@ -92,7 +92,7 @@ class APIConfig:
 class DashboardConfig:
     """Configuration for the Dash dashboard."""
 
-    host: str = "0.0.0.0"
+    host: str = "0.0.0.0"  # noqa: S104
     port: int = 8050
     debug: bool = False
     theme: str = "dark"

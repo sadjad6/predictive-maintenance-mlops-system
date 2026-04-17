@@ -34,8 +34,11 @@ def small_data_config() -> DataConfig:
 def small_model_config(tmp_path) -> ModelConfig:
     """Small model config for fast tests."""
     return ModelConfig(
-        n_cv_splits=2, n_optuna_trials=2, lstm_epochs=3,
-        lstm_sequence_length=5, models_dir=tmp_path / "models",
+        n_cv_splits=2,
+        n_optuna_trials=2,
+        lstm_epochs=3,
+        lstm_sequence_length=5,
+        models_dir=tmp_path / "models",
     )
 
 
@@ -55,19 +58,21 @@ def sample_sensor_df() -> pd.DataFrame:
 
     for eid in range(1, n_engines + 1):
         for cycle in range(1, cycles_per_engine + 1):
-            rows.append({
-                COL_ENGINE_ID: eid,
-                COL_CYCLE: cycle,
-                SENSOR_TEMPERATURE: 520 + cycle * 0.1 + rng.normal(0, 2),
-                SENSOR_VIBRATION: 0.02 + cycle * 0.0002 + rng.normal(0, 0.003),
-                SENSOR_PRESSURE: 14.7 - cycle * 0.01 + rng.normal(0, 0.2),
-                SENSOR_ROTATION_SPEED: 9000 - cycle * 2 + rng.normal(0, 30),
-                SENSOR_VOLTAGE: 230 - cycle * 0.05 + rng.normal(0, 1),
-                SENSOR_CURRENT: 15 + cycle * 0.02 + rng.normal(0, 0.3),
-                OPERATIONAL_SETTING_1: rng.uniform(-0.01, 0.01),
-                OPERATIONAL_SETTING_2: rng.uniform(-0.005, 0.005),
-                OPERATIONAL_SETTING_3: 100 + rng.uniform(-0.5, 0.5),
-            })
+            rows.append(
+                {
+                    COL_ENGINE_ID: eid,
+                    COL_CYCLE: cycle,
+                    SENSOR_TEMPERATURE: 520 + cycle * 0.1 + rng.normal(0, 2),
+                    SENSOR_VIBRATION: 0.02 + cycle * 0.0002 + rng.normal(0, 0.003),
+                    SENSOR_PRESSURE: 14.7 - cycle * 0.01 + rng.normal(0, 0.2),
+                    SENSOR_ROTATION_SPEED: 9000 - cycle * 2 + rng.normal(0, 30),
+                    SENSOR_VOLTAGE: 230 - cycle * 0.05 + rng.normal(0, 1),
+                    SENSOR_CURRENT: 15 + cycle * 0.02 + rng.normal(0, 0.3),
+                    OPERATIONAL_SETTING_1: rng.uniform(-0.01, 0.01),
+                    OPERATIONAL_SETTING_2: rng.uniform(-0.005, 0.005),
+                    OPERATIONAL_SETTING_3: 100 + rng.uniform(-0.5, 0.5),
+                }
+            )
 
     return pd.DataFrame(rows)
 

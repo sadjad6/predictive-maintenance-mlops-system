@@ -81,6 +81,7 @@ class TestModelTraining:
 
     def test_untrained_model_cannot_register(self, small_model_config) -> None:
         from src.models.base import ModelRegistry
+
         registry = ModelRegistry(small_model_config)
         model = LogisticRegressionModel()
         with pytest.raises(ValueError, match="untrained"):

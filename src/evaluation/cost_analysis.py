@@ -69,15 +69,11 @@ class CostAnalyzer:
 
         # Cost WITHOUT model (reactive — all failures cause downtime)
         report.total_cost_without_model = (
-            total_failures
-            * self.config.downtime_cost_per_hour
-            * self.config.avg_repair_hours
+            total_failures * self.config.downtime_cost_per_hour * self.config.avg_repair_hours
         )
 
         # Cost WITH model
-        missed_failure_cost = (
-            fn * self.config.downtime_cost_per_hour * self.config.avg_repair_hours
-        )
+        missed_failure_cost = fn * self.config.downtime_cost_per_hour * self.config.avg_repair_hours
         preventive_maintenance_cost = tp * self.config.maintenance_cost
         unnecessary_maintenance_cost = fp * self.config.maintenance_cost
 
@@ -86,29 +82,24 @@ class CostAnalyzer:
         )
 
         # Savings
-        report.cost_savings = (
-            report.total_cost_without_model - report.total_cost_with_model
-        )
+        report.cost_savings = report.total_cost_without_model - report.total_cost_with_model
         if report.total_cost_without_model > 0:
-            report.savings_percentage = (
-                report.cost_savings / report.total_cost_without_model * 100
-            )
+            report.savings_percentage = report.cost_savings / report.total_cost_without_model * 100
 
         # Downtime saved
-        report.estimated_downtime_hours_saved = (
-            tp * self.config.avg_repair_hours
-        )
+        report.estimated_downtime_hours_saved = tp * self.config.avg_repair_hours
 
         # ROI
         if model_deployment_cost > 0:
             report.roi_percentage = (
-                (report.cost_savings - model_deployment_cost)
-                / model_deployment_cost * 100
+                (report.cost_savings - model_deployment_cost) / model_deployment_cost * 100
             )
 
         logger.info(
             "Cost analysis: savings=${:,.0f} ({:.1f}%), ROI={:.1f}%",
-            report.cost_savings, report.savings_percentage, report.roi_percentage,
+            report.cost_savings,
+            report.savings_percentage,
+            report.roi_percentage,
         )
         return report
 

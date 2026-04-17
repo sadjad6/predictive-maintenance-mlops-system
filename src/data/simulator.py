@@ -7,6 +7,7 @@ with configurable failure modes, regime changes, and sensor noise.
 from __future__ import annotations
 
 from dataclasses import dataclass
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -91,9 +92,7 @@ class SensorDataSimulator:
         engine_frames: list[pd.DataFrame] = []
 
         for engine_id in range(1, self.config.num_engines + 1):
-            max_life = self._rng.integers(
-                self.config.min_cycles, self.config.max_cycles + 1
-            )
+            max_life = self._rng.integers(self.config.min_cycles, self.config.max_cycles + 1)
             engine_df = self._generate_single_engine(engine_id, int(max_life))
             engine_frames.append(engine_df)
 
@@ -105,9 +104,7 @@ class SensorDataSimulator:
         )
         return combined
 
-    def _generate_single_engine(
-        self, engine_id: int, max_cycles: int
-    ) -> pd.DataFrame:
+    def _generate_single_engine(self, engine_id: int, max_cycles: int) -> pd.DataFrame:
         """Generate degradation data for a single engine."""
         cycles = np.arange(1, max_cycles + 1)
         n = len(cycles)
@@ -127,19 +124,13 @@ class SensorDataSimulator:
 
         # Sensor readings with degradation
         for profile in DEFAULT_SENSOR_PROFILES:
-            records[profile.name] = self._generate_sensor_signal(
-                n, health, profile
-            )
+            records[profile.name] = self._generate_sensor_signal(n, health, profile)
 
         df = pd.DataFrame(records)
 
         # Add timestamps (one cycle ≈ 1 hour of operation)
-        base_time = pd.Timestamp("2024-01-01") + pd.Timedelta(
-            hours=engine_id * 500
-        )
-        df[COL_TIMESTAMP] = pd.date_range(
-            start=base_time, periods=n, freq="h"
-        )
+        base_time = pd.Timestamp("2024-01-01") + pd.Timedelta(hours=engine_id * 500)
+        df[COL_TIMESTAMP] = pd.date_range(start=base_time, periods=n, freq="h")
 
         return df
 
@@ -188,9 +179,7 @@ class SensorDataSimulator:
 
     def save(self, df: pd.DataFrame, filename: str = "sensor_data.parquet") -> Path:
         """Save generated data to Parquet format."""
-        from pathlib import Path as _Path
-
-        output_dir = _Path(self.config.raw_data_path)
+        output_dir = Path(self.config.raw_data_path)
         output_dir.mkdir(parents=True, exist_ok=True)
         output_path = output_dir / filename
         df.to_parquet(output_path, index=False)

@@ -50,7 +50,9 @@ class TestSensorDataSimulator:
 
     def test_save_creates_file(self, small_data_config: DataConfig, tmp_path) -> None:
         config = DataConfig(
-            num_engines=2, min_cycles=10, max_cycles=15,
+            num_engines=2,
+            min_cycles=10,
+            max_cycles=15,
             raw_data_path=tmp_path / "raw",
         )
         sim = SensorDataSimulator(config)

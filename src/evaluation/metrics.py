@@ -125,9 +125,11 @@ class MetricsCalculator:
         report.cost_score = self._compute_cost_score(report)
 
         logger.info(
-            "Classification — F1: {:.4f}, ROC-AUC: {:.4f}, "
-            "Recall: {:.4f}, Cost: ${:,.0f}",
-            report.f1, report.roc_auc, report.recall, report.cost_score,
+            "Classification — F1: {:.4f}, ROC-AUC: {:.4f}, Recall: {:.4f}, Cost: ${:,.0f}",
+            report.f1,
+            report.roc_auc,
+            report.recall,
+            report.cost_score,
         )
         return report
 
@@ -154,7 +156,9 @@ class MetricsCalculator:
 
         logger.info(
             "Regression — RMSE: {:.2f}, MAE: {:.2f}, R²: {:.4f}",
-            report.rmse, report.mae, report.r2,
+            report.rmse,
+            report.mae,
+            report.r2,
         )
         return report
 
@@ -171,8 +175,6 @@ class MetricsCalculator:
             * self.biz.false_negative_multiplier
         )
         fp_cost = (
-            report.false_positives
-            * self.biz.maintenance_cost
-            * self.biz.false_positive_multiplier
+            report.false_positives * self.biz.maintenance_cost * self.biz.false_positive_multiplier
         )
         return fn_cost + fp_cost

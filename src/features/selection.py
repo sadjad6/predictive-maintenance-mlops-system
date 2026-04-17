@@ -6,13 +6,17 @@ and mutual-information-based feature ranking.
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import numpy as np
-import pandas as pd
 from loguru import logger
 from sklearn.feature_selection import mutual_info_classif, mutual_info_regression
 
 from src.config import FeatureConfig, get_config
 from src.constants import TASK_CLASSIFICATION
+
+if TYPE_CHECKING:
+    import pandas as pd
 
 
 class FeatureSelector:
@@ -74,31 +78,23 @@ class FeatureSelector:
         self._selected_features = surviving
         return surviving
 
-    def _variance_filter(
-        self, df: pd.DataFrame, feature_cols: list[str]
-    ) -> list[str]:
+    def _variance_filter(self, df: pd.DataFrame, feature_cols: list[str]) -> list[str]:
         """Remove features with variance below threshold."""
         variances = df[feature_cols].var()
         mask = variances > self.config.min_variance_threshold
         return list(variances[mask].index)
 
-    def _correlation_filter(
-        self, df: pd.DataFrame, feature_cols: list[str]
-    ) -> list[str]:
+    def _correlation_filter(self, df: pd.DataFrame, feature_cols: list[str]) -> list[str]:
         """Remove one of each pair of highly correlated features."""
         if len(feature_cols) < 2:
             return feature_cols
 
         corr_matrix = df[feature_cols].corr().abs()
-        upper_tri = corr_matrix.where(
-            np.triu(np.ones(corr_matrix.shape, dtype=bool), k=1)
-        )
+        upper_tri = corr_matrix.where(np.triu(np.ones(corr_matrix.shape, dtype=bool), k=1))
 
         to_drop: set[str] = set()
         for col in upper_tri.columns:
-            high_corr = upper_tri.index[
-                upper_tri[col] > self.config.max_correlation_threshold
-            ]
+            high_corr = upper_tri.index[upper_tri[col] > self.config.max_correlation_threshold]
             to_drop.update(high_corr)
 
         if to_drop:
@@ -118,11 +114,7 @@ class FeatureSelector:
         x = df[feature_cols].fillna(0).values
         y = df[target_col].values
 
-        mi_func = (
-            mutual_info_classif
-            if task == TASK_CLASSIFICATION
-            else mutual_info_regression
-        )
+        mi_func = mutual_info_classif if task == TASK_CLASSIFICATION else mutual_info_regression
         mi_scores = mi_func(x, y, random_state=42)
 
         score_map = dict(zip(feature_cols, mi_scores, strict=False))

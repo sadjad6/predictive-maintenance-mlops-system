@@ -21,6 +21,7 @@ router = APIRouter()
 def _get_pipeline():
     """Lazy import to avoid circular dependency."""
     from src.api.app import pipeline
+
     return pipeline
 
 
@@ -55,7 +56,7 @@ async def predict_rul(reading: SensorReading) -> RULResponse:
 @router.post("/detect/anomaly", response_model=AnomalyResponse)
 async def detect_anomaly(reading: SensorReading) -> AnomalyResponse:
     """Detect anomalies in sensor readings."""
-    pipe = _get_pipeline()
+    _get_pipeline()
     # Heuristic anomaly detection when model not loaded
     temp_zscore = abs(reading.sensor_temperature - 520) / 30
     vib_zscore = abs(reading.sensor_vibration - 0.02) / 0.01

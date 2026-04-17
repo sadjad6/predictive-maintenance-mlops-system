@@ -50,7 +50,9 @@ def feature_engineering_flow(df=None):
     df, feature_cols = engineer_features(df, config)
 
     logger.info(
-        "Features: {} columns, {} rows", len(feature_cols), len(df),
+        "Features: {} columns, {} rows",
+        len(feature_cols),
+        len(df),
     )
     return df, feature_cols
 

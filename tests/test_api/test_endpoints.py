@@ -52,7 +52,9 @@ class TestFailurePredictionEndpoint:
         response = client.post("/api/v1/predict/failure", json=sample_reading)
         assert response.status_code == 200
 
-    def test_predict_failure_response_format(self, client: TestClient, sample_reading: dict) -> None:
+    def test_predict_failure_response_format(
+        self, client: TestClient, sample_reading: dict
+    ) -> None:
         data = client.post("/api/v1/predict/failure", json=sample_reading).json()
         assert "failure_probability" in data
         assert "risk_level" in data

@@ -60,14 +60,16 @@ class WhatIfSimulator:
         if maintenance_cycles is None:
             # Generate default scenarios at 25%, 50%, 75%, 100% of RUL
             maintenance_cycles = [
-                current_cycle + int(rul_estimate * pct)
-                for pct in [0.25, 0.50, 0.75, 1.0]
+                current_cycle + int(rul_estimate * pct) for pct in [0.25, 0.50, 0.75, 1.0]
             ]
 
         scenarios = []
         for maint_cycle in maintenance_cycles:
             scenario = self._evaluate_scenario(
-                current_cycle, current_failure_prob, rul_estimate, maint_cycle,
+                current_cycle,
+                current_failure_prob,
+                rul_estimate,
+                maint_cycle,
             )
             scenarios.append(scenario)
 
@@ -89,16 +91,15 @@ class WhatIfSimulator:
 
         # Exponential risk increase model
         projected_prob_no_maint = min(
-            0.99, current_prob * np.exp(fraction_of_life_used * 1.5),
+            0.99,
+            current_prob * np.exp(fraction_of_life_used * 1.5),
         )
 
         # Post-maintenance: risk drops to ~10% of pre-maintenance level
         post_maint_prob = current_prob * 0.1
 
         # Cost analysis
-        failure_cost = (
-            self.config.downtime_cost_per_hour * self.config.avg_repair_hours
-        )
+        failure_cost = self.config.downtime_cost_per_hour * self.config.avg_repair_hours
         expected_failure_cost = projected_prob_no_maint * failure_cost
         maint_cost = self.config.maintenance_cost
         expected_savings = expected_failure_cost - maint_cost

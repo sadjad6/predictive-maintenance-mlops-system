@@ -62,10 +62,12 @@ class TestFailureLabeler:
         assert 0.1 < positive_ratio < 0.6, f"Unexpected ratio: {positive_ratio}"
 
     def test_single_engine_labeling(self) -> None:
-        df = pd.DataFrame({
-            COL_ENGINE_ID: [1] * 10,
-            COL_CYCLE: list(range(1, 11)),
-        })
+        df = pd.DataFrame(
+            {
+                COL_ENGINE_ID: [1] * 10,
+                COL_CYCLE: list(range(1, 11)),
+            }
+        )
         config = DataConfig(failure_window=3)
         labeler = FailureLabeler(config)
         result = labeler.add_labels(df)

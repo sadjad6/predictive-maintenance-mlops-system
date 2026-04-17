@@ -62,9 +62,7 @@ class StreamProducer:
     async def produce_from_dataframe(self, df: pd.DataFrame) -> None:
         """Stream records from a DataFrame into the queue."""
         self._running = True
-        logger.info(
-            "Starting stream producer with {} records", len(df)
-        )
+        logger.info("Starting stream producer with {} records", len(df))
 
         skip_cols = {"engine_id", "cycle", "timestamp"}
         for _, row in df.iterrows():
@@ -80,9 +78,7 @@ class StreamProducer:
             message = StreamMessage(
                 engine_id=int(row["engine_id"]),
                 cycle=int(row["cycle"]),
-                timestamp=str(
-                    row.get("timestamp", datetime.now(tz=UTC).isoformat())
-                ),
+                timestamp=str(row.get("timestamp", datetime.now(tz=UTC).isoformat())),
                 sensors=sensors,
                 metadata={"produced_at": datetime.now(tz=UTC).isoformat()},
             )
@@ -186,9 +182,7 @@ class StreamSimulator:
         batch_size: int = 10,
         max_queue_size: int = 1000,
     ) -> None:
-        self._queue: asyncio.Queue[StreamMessage] = asyncio.Queue(
-            maxsize=max_queue_size
-        )
+        self._queue: asyncio.Queue[StreamMessage] = asyncio.Queue(maxsize=max_queue_size)
         self.producer = StreamProducer(self._queue, records_per_second)
         self.consumer = StreamConsumer(self._queue, batch_size)
 
@@ -208,9 +202,7 @@ class StreamSimulator:
         """
         logger.info("Starting streaming simulation")
 
-        producer_task = asyncio.create_task(
-            self.producer.produce_from_dataframe(df)
-        )
+        producer_task = asyncio.create_task(self.producer.produce_from_dataframe(df))
         messages = await self.consumer.consume(max_messages)
 
         self.producer.stop()
