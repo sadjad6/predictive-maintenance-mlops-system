@@ -10,6 +10,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+import typing
+
 import numpy as np
 import pandas as pd
 from loguru import logger
@@ -39,7 +41,7 @@ class ModelExplainer:
         self.model = model
         self.feature_names = feature_names
         self._shap_values: np.ndarray | None = None
-        self._explainer = None
+        self._explainer: typing.Any = None
 
     def compute_shap_values(
         self,
@@ -92,7 +94,7 @@ class ModelExplainer:
         # Global importance
         mean_abs_shap = np.mean(np.abs(shap_values), axis=0)
         importance = dict(zip(self.feature_names, mean_abs_shap, strict=False))
-        sorted_features = sorted(importance, key=importance.get, reverse=True)
+        sorted_features = sorted(importance, key=lambda k: float(importance[k]), reverse=True)
 
         report = ExplainabilityReport(
             global_importance=importance,

@@ -152,5 +152,5 @@ class KPIEngine:
 
         # Sort by priority (critical first)
         priority_order = {"CRITICAL": 0, "HIGH": 1, "MEDIUM": 2, "LOW": 3}
-        schedule.sort(key=lambda x: priority_order.get(x["priority"], 4))
+        schedule.sort(key=lambda x: priority_order.get(str(x["priority"]), 4))
         return schedule

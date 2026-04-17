@@ -177,7 +177,7 @@ class DataValidator:
             return
 
         for engine_id, group in df.groupby(COL_ENGINE_ID):
-            cycles = group[COL_CYCLE].values
+            cycles = np.asarray(group[COL_CYCLE])
             if not np.all(np.diff(cycles) > 0):
                 report.add_issue(
                     ValidationIssue(

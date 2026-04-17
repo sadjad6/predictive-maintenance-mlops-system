@@ -52,7 +52,7 @@ class _LSTMNetwork(nn.Module):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         lstm_out, _ = self.lstm(x)
         last_hidden = lstm_out[:, -1, :]
-        return self.fc(last_hidden)
+        return self.fc(last_hidden)  # type: ignore[no-any-return]
 
 
 class LSTMModel(BaseModel):
@@ -155,8 +155,8 @@ class LSTMModel(BaseModel):
             output = self._network(tensor).cpu().numpy().flatten()
 
         if self.task_type == TASK_CLASSIFICATION:
-            return (torch.sigmoid(torch.from_numpy(output)).numpy() > 0.5).astype(int)
-        return output
+            return (torch.sigmoid(torch.from_numpy(output)).numpy() > 0.5).astype(int)  # type: ignore[no-any-return]
+        return output  # type: ignore[no-any-return]
 
     def predict_proba(self, x: np.ndarray | pd.DataFrame) -> np.ndarray | None:
         """Return probability predictions for classification."""
@@ -214,6 +214,9 @@ class LSTMModel(BaseModel):
         loss_fn: Any,
         optimizer: torch.optim.Optimizer,
     ) -> float:
+        if self._network is None:
+            return 0.0
+
         total_loss = 0.0
         for x_batch, y_batch in loader:
             x_batch = x_batch.to(self.device)

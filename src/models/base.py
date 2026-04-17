@@ -205,11 +205,11 @@ class SklearnModelWrapper(BaseModel):
         return {}
 
     def predict(self, x: np.ndarray | pd.DataFrame) -> np.ndarray:
-        return self.estimator.predict(x)
+        return self.estimator.predict(x)  # type: ignore[no-any-return]
 
     def predict_proba(self, x: np.ndarray | pd.DataFrame) -> np.ndarray | None:
         if hasattr(self.estimator, "predict_proba"):
-            return self.estimator.predict_proba(x)
+            return self.estimator.predict_proba(x)  # type: ignore[no-any-return]
         return None
 
     def save(self, path: str | Path) -> Path:
@@ -233,5 +233,5 @@ class SklearnModelWrapper(BaseModel):
 def _safe_get_params(estimator: Any) -> dict[str, Any]:
     """Safely extract parameters from an estimator."""
     if hasattr(estimator, "get_params"):
-        return estimator.get_params()
+        return estimator.get_params()  # type: ignore[no-any-return]
     return {}

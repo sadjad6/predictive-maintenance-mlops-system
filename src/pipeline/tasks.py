@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+import numpy as np
 from loguru import logger
 from prefect import task
 
@@ -97,8 +98,8 @@ def train_classification_models(
     cfg = config or get_config()
     trainer = ModelTrainer(cfg.model)
 
-    x = df[feature_cols].values
-    y = df[COL_FAILURE_LABEL].values
+    x = np.asarray(df[feature_cols])
+    y = np.asarray(df[COL_FAILURE_LABEL])
 
     models = [
         LogisticRegressionModel(),
@@ -129,8 +130,8 @@ def train_regression_models(
     cfg = config or get_config()
     trainer = ModelTrainer(cfg.model)
 
-    x = df[feature_cols].values
-    y = df[COL_RUL].values
+    x = np.asarray(df[feature_cols])
+    y = np.asarray(df[COL_RUL])
 
     models = [
         RandomForestRegressorModel(),

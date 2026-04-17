@@ -6,8 +6,15 @@ training, evaluation, and deployment.
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING, Any
+
 from loguru import logger
 from prefect import flow
+
+if TYPE_CHECKING:
+    import pandas as pd
+
+    from src.models.training import ModelTrainer
 
 from src.config import get_config
 from src.constants import METRIC_MAE, METRIC_ROC_AUC
@@ -24,7 +31,7 @@ from src.pipeline.tasks import (
 
 
 @flow(name="data_ingestion_flow", log_prints=True)
-def data_ingestion_flow():
+def data_ingestion_flow() -> pd.DataFrame:
     """Generate and validate sensor data."""
     config = get_config()
     df = generate_sensor_data(config)
@@ -39,7 +46,7 @@ def data_ingestion_flow():
 
 
 @flow(name="feature_engineering_flow", log_prints=True)
-def feature_engineering_flow(df=None):
+def feature_engineering_flow(df: pd.DataFrame | None = None) -> tuple[pd.DataFrame, list[str]]:
     """Run feature engineering and labeling."""
     config = get_config()
 
@@ -58,7 +65,9 @@ def feature_engineering_flow(df=None):
 
 
 @flow(name="training_flow", log_prints=True)
-def training_flow(df=None, feature_cols=None):
+def training_flow(
+    df: pd.DataFrame | None = None, feature_cols: list[str] | None = None
+) -> tuple[ModelTrainer, ModelTrainer]:
     """Train and evaluate all models."""
     config = get_config()
 
@@ -79,7 +88,7 @@ def training_flow(df=None, feature_cols=None):
 
 
 @flow(name="full_pipeline", log_prints=True)
-def full_pipeline_flow():
+def full_pipeline_flow() -> dict[str, Any]:
     """End-to-end pipeline: data → features → training → save."""
     logger.info("Starting full ML pipeline")
 

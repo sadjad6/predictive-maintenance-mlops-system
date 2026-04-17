@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import typing
+
 from fastapi import APIRouter
 
 from src.api.schemas import (
@@ -18,7 +20,7 @@ from src.api.schemas import (
 router = APIRouter()
 
 
-def _get_pipeline():
+def _get_pipeline() -> typing.Any:
     """Lazy import to avoid circular dependency."""
     from src.api.app import pipeline
 

@@ -42,11 +42,11 @@ class IsolationForestDetector(SklearnModelWrapper):
 
     def predict(self, x: np.ndarray | pd.DataFrame) -> np.ndarray:
         """Predict anomalies: 1=normal, -1=anomaly (sklearn convention)."""
-        return self.estimator.predict(x)
+        return self.estimator.predict(x)  # type: ignore[no-any-return]
 
     def anomaly_scores(self, x: np.ndarray | pd.DataFrame) -> np.ndarray:
         """Return anomaly scores (lower = more anomalous)."""
-        return self.estimator.decision_function(x)
+        return self.estimator.decision_function(x)  # type: ignore[no-any-return]
 
 
 class _AutoencoderNetwork(nn.Module):
@@ -70,7 +70,7 @@ class _AutoencoderNetwork(nn.Module):
         )
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        return self.decoder(self.encoder(x))
+        return self.decoder(self.encoder(x))  # type: ignore[no-any-return]
 
 
 class AutoencoderDetector(BaseModel):
@@ -139,7 +139,7 @@ class AutoencoderDetector(BaseModel):
         with torch.no_grad():
             tensor = torch.from_numpy(x).to(self.device)
             recon = self._network(tensor).cpu().numpy()
-        return np.mean((x - recon) ** 2, axis=1)
+        return np.mean((x - recon) ** 2, axis=1)  # type: ignore[no-any-return]
 
     def save(self, path: str | Path) -> Path:
         path = Path(path)

@@ -9,6 +9,8 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any
 
+import copy
+
 import numpy as np
 from loguru import logger
 from sklearn.model_selection import TimeSeriesSplit
@@ -143,7 +145,7 @@ class ModelTrainer:
 
 def _clone_model(model: BaseModel) -> BaseModel:
     """Create a fresh instance of the same model type."""
-    return model.__class__()
+    return copy.deepcopy(model)
 
 
 def _compute_fold_metrics(

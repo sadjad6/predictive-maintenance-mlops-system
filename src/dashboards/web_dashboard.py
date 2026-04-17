@@ -8,6 +8,8 @@ from __future__ import annotations
 
 import dash
 import dash_bootstrap_components as dbc
+import typing
+
 import numpy as np
 from dash import Input, Output, State, dcc, html
 
@@ -275,7 +277,9 @@ def create_dashboard() -> dash.Dash:
         State("whatif-prob", "value"),
         prevent_initial_call=True,
     )
-    def run_whatif(n_clicks, current_cycle, maint_cycle, prob):
+    def run_whatif(
+        n_clicks: typing.Any, current_cycle: typing.Any, maint_cycle: typing.Any, prob: typing.Any
+    ) -> typing.Any:
         sim = WhatIfSimulator()
         scenarios = sim.simulate_maintenance_timing(
             current_cycle=current_cycle or 150,

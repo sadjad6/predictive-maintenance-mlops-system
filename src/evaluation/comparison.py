@@ -112,7 +112,7 @@ class ModelComparator:
         if "task" in table.columns:
             clf_models = table[table["task"] == "classification"]
             if len(clf_models) > 1 and metric in clf_models.columns:
-                values = clf_models[metric].values
+                values = np.asarray(clf_models[metric].values, dtype=float)
                 if np.std(values) > 0.1:
                     recs.append("High variance across models — consider ensemble approaches.")
 
