@@ -6,10 +6,9 @@ and a unified training interface for all model types.
 
 from __future__ import annotations
 
+import copy
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any
-
-import copy
 
 import numpy as np
 from loguru import logger

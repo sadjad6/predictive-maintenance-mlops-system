@@ -6,10 +6,10 @@ RUL, Anomaly Detection, What-If Simulation, and Business KPIs.
 
 from __future__ import annotations
 
-import dash
-import dash_bootstrap_components as dbc
 import typing
 
+import dash
+import dash_bootstrap_components as dbc
 import numpy as np
 from dash import Input, Output, State, dcc, html
 

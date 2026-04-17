@@ -6,11 +6,10 @@ for tree-based and general ML models.
 
 from __future__ import annotations
 
+import typing
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import TYPE_CHECKING
-
-import typing
 
 import numpy as np
 import pandas as pd
