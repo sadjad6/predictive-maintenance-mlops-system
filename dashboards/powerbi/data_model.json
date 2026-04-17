@@ -1,0 +1,68 @@
+{
+  "name": "PredictiveMaintenanceModel",
+  "tables": [
+    {
+      "name": "Predictions",
+      "columns": [
+        {"name": "engine_id", "type": "Int64"},
+        {"name": "cycle", "type": "Int64"},
+        {"name": "failure_probability", "type": "Double"},
+        {"name": "risk_level", "type": "String"},
+        {"name": "estimated_rul", "type": "Double"},
+        {"name": "health_score", "type": "Double"},
+        {"name": "is_anomaly", "type": "Boolean"},
+        {"name": "prediction_timestamp", "type": "DateTime"}
+      ]
+    },
+    {
+      "name": "SensorData",
+      "columns": [
+        {"name": "engine_id", "type": "Int64"},
+        {"name": "cycle", "type": "Int64"},
+        {"name": "timestamp", "type": "DateTime"},
+        {"name": "sensor_temperature", "type": "Double"},
+        {"name": "sensor_vibration", "type": "Double"},
+        {"name": "sensor_pressure", "type": "Double"},
+        {"name": "sensor_rotation_speed", "type": "Double"}
+      ]
+    },
+    {
+      "name": "MaintenanceLog",
+      "columns": [
+        {"name": "engine_id", "type": "Int64"},
+        {"name": "maintenance_date", "type": "DateTime"},
+        {"name": "maintenance_type", "type": "String"},
+        {"name": "cost", "type": "Double"},
+        {"name": "was_predicted", "type": "Boolean"}
+      ]
+    },
+    {
+      "name": "ModelPerformance",
+      "columns": [
+        {"name": "model_name", "type": "String"},
+        {"name": "roc_auc", "type": "Double"},
+        {"name": "f1_score", "type": "Double"},
+        {"name": "precision", "type": "Double"},
+        {"name": "recall", "type": "Double"},
+        {"name": "cost_score", "type": "Double"}
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "from": {"table": "Predictions", "column": "engine_id"},
+      "to": {"table": "SensorData", "column": "engine_id"},
+      "type": "many-to-one"
+    },
+    {
+      "from": {"table": "MaintenanceLog", "column": "engine_id"},
+      "to": {"table": "SensorData", "column": "engine_id"},
+      "type": "many-to-one"
+    }
+  ],
+  "measures": {
+    "HealthScore": "AVERAGE('Predictions'[health_score]) * 100",
+    "CriticalCount": "COUNTROWS(FILTER('Predictions', 'Predictions'[risk_level] = \"critical\"))",
+    "AnnualSavings": "SUMX('Predictions', 'Predictions'[failure_probability] * 80000 - 2000)"
+  }
+}

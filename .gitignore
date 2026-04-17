@@ -1,0 +1,60 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Environment
+.env
+.env.local
+
+# Data (large files)
+data/raw/*.parquet
+data/raw/*.csv
+data/processed/*.parquet
+data/features/*.parquet
+
+# Models (large files)
+models/*.joblib
+models/*.pt
+models/*.pkl
+models/*/
+!models/.gitkeep
+
+# Reports
+reports/*.csv
+reports/*.html
+
+# Coverage
+.coverage
+htmlcov/
+coverage.xml
+
+# MyPy / Ruff
+.mypy_cache/
+.ruff_cache/
+
+# Pytest
+.pytest_cache/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+*.log

@@ -1,0 +1,42 @@
+version: "3.9"
+
+services:
+  api:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: pred-maintenance-api
+    ports:
+      - "8000:8000"
+    environment:
+      - API_HOST=0.0.0.0
+      - API_PORT=8000
+      - LOG_LEVEL=info
+    volumes:
+      - ../models:/app/models
+      - ../data:/app/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import httpx; httpx.get('http://localhost:8000/api/v1/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  dashboard:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: pred-maintenance-dashboard
+    ports:
+      - "8050:8050"
+    environment:
+      - DASHBOARD_HOST=0.0.0.0
+      - DASHBOARD_PORT=8050
+    volumes:
+      - ../models:/app/models
+      - ../data:/app/data
+    command: ["python", "-m", "src.dashboards.web_dashboard"]
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy

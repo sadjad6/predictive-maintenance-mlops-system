@@ -1,0 +1,40 @@
+steps:
+  # Build
+  - name: "gcr.io/cloud-builders/docker"
+    args:
+      - "build"
+      - "-f"
+      - "docker/Dockerfile"
+      - "-t"
+      - "gcr.io/$PROJECT_ID/pred-maintenance-api:$COMMIT_SHA"
+      - "-t"
+      - "gcr.io/$PROJECT_ID/pred-maintenance-api:latest"
+      - "."
+
+  # Push
+  - name: "gcr.io/cloud-builders/docker"
+    args:
+      - "push"
+      - "gcr.io/$PROJECT_ID/pred-maintenance-api:$COMMIT_SHA"
+
+  # Deploy
+  - name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
+    entrypoint: gcloud
+    args:
+      - "run"
+      - "deploy"
+      - "pred-maintenance-api"
+      - "--image=gcr.io/$PROJECT_ID/pred-maintenance-api:$COMMIT_SHA"
+      - "--region=europe-west1"
+      - "--platform=managed"
+      - "--memory=2Gi"
+      - "--cpu=2"
+      - "--port=8000"
+      - "--allow-unauthenticated"
+
+images:
+  - "gcr.io/$PROJECT_ID/pred-maintenance-api:$COMMIT_SHA"
+  - "gcr.io/$PROJECT_ID/pred-maintenance-api:latest"
+
+options:
+  logging: CLOUD_LOGGING_ONLY

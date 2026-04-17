@@ -1,0 +1,86 @@
+{
+  "workbook": {
+    "name": "PredictiveMaintenance_Analytical",
+    "version": "2024.1",
+    "datasources": [
+      {
+        "name": "SensorData",
+        "type": "parquet",
+        "path": "data/processed/processed_data.parquet",
+        "columns": [
+          "engine_id", "cycle", "timestamp",
+          "sensor_temperature", "sensor_vibration",
+          "sensor_pressure", "sensor_rotation_speed"
+        ]
+      },
+      {
+        "name": "Predictions",
+        "type": "rest_api",
+        "url": "http://localhost:8000/api/v1/predict/batch",
+        "method": "POST",
+        "refresh": "hourly"
+      },
+      {
+        "name": "FeatureImportance",
+        "type": "csv",
+        "path": "reports/feature_importance.csv"
+      }
+    ],
+    "worksheets": [
+      {
+        "name": "Sensor Trends",
+        "type": "line_chart",
+        "dimensions": ["timestamp", "engine_id"],
+        "measures": ["sensor_temperature", "sensor_vibration", "sensor_pressure"],
+        "filters": ["engine_id", "date_range"]
+      },
+      {
+        "name": "Failure Patterns",
+        "type": "heatmap",
+        "dimensions": ["cycle", "sensor_name"],
+        "measures": ["normalized_value"],
+        "color": "rul"
+      },
+      {
+        "name": "Machine Drill-Down",
+        "type": "treemap",
+        "hierarchy": ["plant", "line", "machine", "engine"],
+        "measures": ["health_score", "failure_probability"]
+      },
+      {
+        "name": "Feature Importance",
+        "type": "bar_chart",
+        "dimensions": ["feature_name"],
+        "measures": ["shap_importance"],
+        "sort": "descending"
+      },
+      {
+        "name": "RUL Distribution",
+        "type": "box_plot",
+        "dimensions": ["risk_category"],
+        "measures": ["estimated_rul"]
+      },
+      {
+        "name": "Anomaly Detection",
+        "type": "scatter_plot",
+        "dimensions": ["cycle"],
+        "measures": ["anomaly_score"],
+        "color_by": "is_anomaly"
+      }
+    ],
+    "dashboards": [
+      {
+        "name": "Analytical Overview",
+        "worksheets": ["Sensor Trends", "Failure Patterns", "Feature Importance"],
+        "layout": "horizontal",
+        "filter_actions": ["engine_id"]
+      },
+      {
+        "name": "Deep Dive",
+        "worksheets": ["Machine Drill-Down", "RUL Distribution", "Anomaly Detection"],
+        "layout": "vertical",
+        "filter_actions": ["engine_id", "risk_category"]
+      }
+    ]
+  }
+}
