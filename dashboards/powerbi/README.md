@@ -70,5 +70,48 @@ Once the data model is built, you need to add the calculated measures.
 3. Copy and paste each DAX formula from the `measures.dax` file one by one into the formula bar.
 4. Ensure the measures are formatted correctly (e.g., format cost measures as Currency, percentages as Percentage).
 
-### 3. Visualize
-With the model and measures in place, you can now build the visualizations described in the **Dashboard Pages** section above using standard Power BI visual types.
+### 3. Visualize the Dashboards
+With the model and measures in place, you can now build the visualizations described in the **Dashboard Pages** section using standard Power BI visuals. Here are the detailed steps for creating each visual:
+
+#### Page 1: Executive Summary
+*   **Fleet Health Score Gauge:**
+    *   Select the **Gauge** visual.
+    *   Drag the `[Avg Health Score]` measure to the "Value" field.
+    *   Set the Maximum value to 100 in the formatting pane.
+*   **Machines at Risk (Critical/High):**
+    *   Select the **Card** visual.
+    *   Drag the `[Critical Engines Count]` measure to the "Fields" area.
+    *   Format the card with a red font or background to indicate urgency.
+*   **Monthly Cost Savings Trend:**
+    *   Select the **Line Chart** visual.
+    *   Drag `Predictions[prediction_timestamp]` to the X-axis (set to Month).
+    *   Drag the `[Estimated Cost Savings]` measure to the Y-axis.
+
+#### Page 2: Failure Risk Overview
+*   **Risk Heatmap by Machine:**
+    *   Select the **Matrix** visual.
+    *   Drag `Predictions[engine_id]` to Rows.
+    *   Drag `Predictions[cycle]` or a date hierarchy to Columns.
+    *   Drag `[Avg Health Score]` to Values.
+    *   Apply Conditional Formatting -> Background Color based on the health score (e.g., Red for low, Green for high).
+*   **Failure Probability Distribution:**
+    *   Select the **Histogram** (or Clustered Column Chart).
+    *   Create bins for `Predictions[failure_probability]` (e.g., 0-10%, 10-20%) and drag to the X-axis.
+    *   Drag `[Total Engines]` measure to the Y-axis.
+*   **Top 10 At-Risk Machines Table:**
+    *   Select the **Table** visual.
+    *   Add `Predictions[engine_id]`, `[Avg Estimated RUL]`, and `[Avg Health Score]`.
+    *   Filter the visual using the filter pane to show Top N (10) by `[Avg Health Score]` (Bottom) or by `[failure_probability]` (Top).
+
+#### Page 3: Financial Impact
+*   **ROI Over Time:**
+    *   Select the **Area Chart**.
+    *   Drag `MaintenanceLog[maintenance_date]` to the X-axis.
+    *   Drag the `[Model ROI]` measure to the Y-axis.
+
+#### Page 4: Sensor Trends
+*   **Sensor Telemetry:**
+    *   Select a **Line Chart** visual.
+    *   Drag `SensorData[timestamp]` to the X-axis.
+    *   Drag `[Avg Sensor Temperature]` and `[Avg Sensor Vibration]` to the Y-axis.
+    *   Add a Slicer for `SensorData[engine_id]` so users can filter by specific machines.

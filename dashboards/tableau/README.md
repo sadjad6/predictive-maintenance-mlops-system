@@ -79,8 +79,35 @@ Once the data source is ready, you need to add the necessary calculated fields, 
 5. Pay special attention to the LOD expressions (the ones wrapped in `{ }`), as these are critical for ensuring your KPIs only reflect the most recent state of each engine.
 
 ### 3. Build the Worksheets and Dashboard
-With your data source modeled and calculated fields created, you can now build the worksheets as outlined in the **Dashboard Worksheets** section above.
+With your data source modeled and calculated fields created, you can now build the worksheets as outlined in the **Dashboard Worksheets** section. Here are the detailed steps for creating them:
 
-1. Create individual worksheets for Sensor Trends, Failure Patterns, and KPIs using the newly created calculated fields.
-2. Combine these worksheets into a single Dashboard.
-3. Add dashboard actions (e.g., filter actions) to allow users to click on an engine in a summary view and see its specific sensor trends in another view.
+#### Worksheet 1: Sensor Trends Over Time
+1.  **Columns:** Drag `[timestamp]` to Columns (set to Exact Date or Continuous).
+2.  **Rows:** Drag `[Current Average Temperature]` and `[Current Average Vibration]` to Rows.
+3.  **Marks:** Set the Mark type to Line.
+4.  **Dual Axis:** Right-click the second measure on Rows and select "Dual Axis", then right-click the axis and select "Synchronize Axis" if appropriate.
+5.  **Filters:** Drag `[engine_id]` to the Filters shelf and show the filter.
+
+#### Worksheet 2: Failure Pattern Exploration (Scatter Plot)
+1.  **Columns:** Drag `[cycle]` to Columns.
+2.  **Rows:** Drag normalized sensor values (e.g., `[Sensor Value]`) to Rows.
+3.  **Marks:** Set Mark type to Circle.
+4.  **Color:** Drag `[Fleet Health Category]` to the Color mark. This will color code points based on their current health status.
+
+#### Worksheet 3: Drill-Down by Machine (Tree Map)
+1.  **Marks:** Set Mark type to Square.
+2.  **Text/Detail:** Drag `[engine_id]` to Text.
+3.  **Size:** Drag `[Total Actual Maintenance Cost]` or another metric to Size.
+4.  **Color:** Drag `[Current Average Health Score]` to Color. Ensure the color palette is diverging (e.g., Red-Green) to easily spot at-risk engines.
+
+#### Worksheet 4: RUL Distribution (Histogram)
+1.  **Columns:** Drag `[Estimated RUL]` to Columns.
+2.  **Rows:** Drag `CNT([Predictions])` to Rows.
+3.  **Show Me:** Select the Histogram visualization.
+4.  **Color:** Drag `[Fleet Health Category]` to Color.
+5.  **Reference Lines:** Right-click the X-axis -> Add Reference Line. Set values at 30, 60, and 90 to indicate maintenance thresholds.
+
+#### Assembling the Dashboard
+1.  Create a new Dashboard tab.
+2.  Drag and drop the created worksheets onto the canvas.
+3.  **Dashboard Actions:** Go to Dashboard -> Actions -> Add Action -> Filter. Set the "Drill-Down by Machine" tree map as the Source Sheet, and the "Sensor Trends" as the Target Sheet. This allows users to click a machine block to instantly filter the trend lines.
