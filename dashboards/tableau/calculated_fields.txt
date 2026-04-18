@@ -1,0 +1,111 @@
+/* 
+====================================================================================================
+Predictive Maintenance - Tableau Calculated Fields & LODs
+Table References based on data_model.json: Predictions, SensorData, MaintenanceLog, ModelPerformance
+====================================================================================================
+*/
+
+// -------------------------------------------------------------------------------------------------
+// 1. Finding the Latest Cycle / Current State (LODs)
+// -------------------------------------------------------------------------------------------------
+
+// Calculate the maximum cycle number for each engine
+[Latest Cycle per Engine]
+{ FIXED [engine_id] : MAX([cycle]) }
+
+// Boolean flag to filter only the most recent prediction row per engine
+[Is Latest Prediction]
+[cycle] = [Latest Cycle per Engine]
+
+// -------------------------------------------------------------------------------------------------
+// 2. Core KPIs (Using LODs to ensure we only count the latest state)
+// -------------------------------------------------------------------------------------------------
+
+// Total Unique Engines
+[Total Engines]
+COUNTD([engine_id])
+
+// Average Current Health Score across the fleet
+// We only want to average the health score of the LATEST cycle for each engine.
+[Avg Current Health Score]
+AVG(IF [Is Latest Prediction] THEN [health_score] END) * 100
+
+// -------------------------------------------------------------------------------------------------
+// 3. Risk & Failure Categorizations
+// -------------------------------------------------------------------------------------------------
+
+// Count of engines currently in "critical" state
+[Critical Engines Count]
+COUNTD(IF [Is Latest Prediction] AND [risk_level] = "critical" THEN [engine_id] END)
+
+// Count of engines with high failure probability right now (>80%)
+[High Risk Engines Count]
+COUNTD(IF [Is Latest Prediction] AND [failure_probability] >= 0.8 THEN [engine_id] END)
+
+// Engines that need maintenance within the next 10 cycles based on latest prediction
+[Urgent Maintenance Needed Count]
+COUNTD(IF [Is Latest Prediction] AND [estimated_rul] <= 10 THEN [engine_id] END)
+
+// Fleet Health Status (Categorization for coloring maps/scatter plots)
+[Fleet Health Category]
+IF [health_score] >= 0.8 THEN "Healthy"
+ELSEIF [health_score] >= 0.5 THEN "Warning"
+ELSE "Critical"
+END
+
+// -------------------------------------------------------------------------------------------------
+// 4. Cost & Savings Analysis (ROI)
+// -------------------------------------------------------------------------------------------------
+
+// Base Assumptions (can be replaced with actual parameter controls in Tableau)
+// Unplanned Failure Cost = $80k
+// Planned Maintenance Cost = $2k
+
+// Actual Total Maintenance Cost
+[Total Actual Maintenance Cost]
+SUM([cost])
+
+// Estimated Cost Savings (Per Prediction)
+// If we catch a failure before it happens (Prob >= 0.8), we save the difference.
+// We evaluate this at the row level.
+[Estimated Cost Savings]
+SUM(IF [failure_probability] >= 0.8 THEN (80000 - 2000) ELSE 0 END)
+
+// Total Correctly Predicted Failures
+[Predicted Failures Count]
+COUNTD(IF [was_predicted] = TRUE THEN [engine_id] END)
+
+// Model ROI Percentage
+[Model ROI %]
+([Estimated Cost Savings] - [Total Actual Maintenance Cost]) / [Total Actual Maintenance Cost]
+
+// -------------------------------------------------------------------------------------------------
+// 5. Sensor Averages (Current State LODs)
+// -------------------------------------------------------------------------------------------------
+
+// Find latest timestamp in SensorData per engine
+[Latest Sensor Timestamp per Engine]
+{ FIXED [engine_id] : MAX([timestamp]) }
+
+// Flag for latest sensor reading
+[Is Latest Sensor Reading]
+[timestamp] = [Latest Sensor Timestamp per Engine]
+
+// Latest Temperature per engine
+[Current Average Temperature]
+AVG(IF [Is Latest Sensor Reading] THEN [sensor_temperature] END)
+
+// Latest Vibration per engine
+[Current Average Vibration]
+AVG(IF [Is Latest Sensor Reading] THEN [sensor_vibration] END)
+
+// -------------------------------------------------------------------------------------------------
+// 6. Model Evaluation
+// -------------------------------------------------------------------------------------------------
+
+// Identify the Best Model based on F1 Score
+[Max F1 Score]
+{ MAX([f1_score]) }
+
+[Is Best Model]
+[f1_score] = [Max F1 Score]

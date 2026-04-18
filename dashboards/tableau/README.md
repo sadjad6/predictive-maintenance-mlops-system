@@ -58,30 +58,29 @@ Use Tableau Web Data Connector to pull live prediction data.
 - **Measures**: Anomaly score, sensor values
 - **Color**: Normal (blue) vs Anomaly (red)
 
-## Setup Instructions
+## How to Create the Dashboard
 
-1. Open Tableau Desktop
-2. Connect to Parquet files in `data/processed/`
-3. Add Web Data Connector for live API data
-4. Create relationships: join on `engine_id`
-5. Build worksheets following specs above
-6. Combine into Dashboard with filter actions
-7. Publish to Tableau Server/Cloud
+This dashboard is built by assembling the provided data model and Level of Detail (LOD) expressions. Follow these steps to build the report in Tableau Desktop:
 
-## Calculated Fields
+### 1. Connect and Model the Data
+The structure of your tables and their relationships is defined in `../powerbi/data_model.json`. Even though it's in the Power BI folder, the same logical model applies.
 
-```tableau
-// Health Score
-IF [failure_probability] < 0.3 THEN "Healthy"
-ELSEIF [failure_probability] < 0.6 THEN "Warning"
-ELSEIF [failure_probability] < 0.8 THEN "At Risk"
-ELSE "Critical"
-END
+1. **Connect to Data:** Open Tableau Desktop and connect to your data sources (e.g., Parquet files in `data/processed/` or Web Data Connector for the REST API).
+2. **Create the Data Source:** Drag your tables into the data model canvas.
+3. **Define Relationships:** Create relationships (not necessarily physical joins, Tableau's logical relationships are preferred) between the tables based on the `engine_id` field, as specified in the JSON data model.
 
-// Normalized Sensor Value
-([Sensor Value] - {FIXED [Sensor Name] : MIN([Sensor Value])})
-/ ({FIXED [Sensor Name] : MAX([Sensor Value])} - {FIXED [Sensor Name] : MIN([Sensor Value])})
+### 2. Add Calculated Fields (LODs)
+Once the data source is ready, you need to add the necessary calculated fields, specifically the Level of Detail expressions required to handle the time-series snapshot data.
 
-// Days Until Maintenance
-[Estimated RUL] / 24
-```
+1. Open the `calculated_fields.txt` file located in this directory.
+2. In Tableau, navigate to any worksheet.
+3. For each formula in the text file, click the dropdown arrow next to the Search bar in the Data pane and select **Create Calculated Field...**
+4. Name the field exactly as written in brackets (e.g., `Latest Cycle per Engine`) and paste the corresponding formula below it into the calculation editor.
+5. Pay special attention to the LOD expressions (the ones wrapped in `{ }`), as these are critical for ensuring your KPIs only reflect the most recent state of each engine.
+
+### 3. Build the Worksheets and Dashboard
+With your data source modeled and calculated fields created, you can now build the worksheets as outlined in the **Dashboard Worksheets** section above.
+
+1. Create individual worksheets for Sensor Trends, Failure Patterns, and KPIs using the newly created calculated fields.
+2. Combine these worksheets into a single Dashboard.
+3. Add dashboard actions (e.g., filter actions) to allow users to click on an engine in a summary view and see its specific sensor trends in another view.

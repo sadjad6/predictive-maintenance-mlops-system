@@ -1,0 +1,123 @@
+/* 
+====================================================================================================
+Predictive Maintenance - Power BI DAX Measures
+Table References based on data_model.json: Predictions, SensorData, MaintenanceLog, ModelPerformance
+====================================================================================================
+*/
+
+// -------------------------------------------------------------------------------------------------
+// 1. Core KPIs
+// -------------------------------------------------------------------------------------------------
+
+// Total number of unique engines monitored
+Total Engines = DISTINCTCOUNT('Predictions'[engine_id])
+
+// Average health score across the entire fleet (or filtered context)
+Avg Health Score = AVERAGE('Predictions'[health_score]) * 100
+
+// Number of engines currently in "critical" risk state
+Critical Engines Count = 
+CALCULATE(
+    DISTINCTCOUNT('Predictions'[engine_id]),
+    'Predictions'[risk_level] = "critical"
+)
+
+// Percentage of the fleet in critical state
+% Critical Fleet = 
+DIVIDE(
+    [Critical Engines Count],
+    [Total Engines],
+    0
+)
+
+// -------------------------------------------------------------------------------------------------
+// 2. Risk & Failure Predictions
+// -------------------------------------------------------------------------------------------------
+
+// Count of engines with a high probability of failure (e.g., > 80%)
+High Risk Failure Count = 
+CALCULATE(
+    DISTINCTCOUNT('Predictions'[engine_id]),
+    'Predictions'[failure_probability] >= 0.8
+)
+
+// Average Estimated Remaining Useful Life (RUL)
+Avg Estimated RUL = AVERAGE('Predictions'[estimated_rul])
+
+// Engines that need maintenance within the next 10 cycles
+Engines Needing Urgent Maintenance = 
+CALCULATE(
+    DISTINCTCOUNT('Predictions'[engine_id]),
+    'Predictions'[estimated_rul] <= 10
+)
+
+// Get the latest cycle number for each engine to filter only current state
+Latest Cycle Per Engine = 
+MAX('Predictions'[cycle])
+
+// -------------------------------------------------------------------------------------------------
+// 3. Time Intelligence & Rolling Metrics
+// -------------------------------------------------------------------------------------------------
+
+// 7-Cycle Rolling Average Health Score
+7-Cycle Rolling Avg Health = 
+AVERAGEX(
+    DATESINPERIOD(
+        'Predictions'[prediction_timestamp],
+        LASTDATE('Predictions'[prediction_timestamp]),
+        -7,
+        DAY // Assuming 1 cycle approx equals 1 day, adjust interval if different
+    ),
+    [Avg Health Score]
+)
+
+// -------------------------------------------------------------------------------------------------
+// 4. Maintenance & Cost Savings (ROI)
+// -------------------------------------------------------------------------------------------------
+
+// Total Actual Maintenance Cost
+Total Maintenance Cost = SUM('MaintenanceLog'[cost])
+
+// Cost of Predicted Maintenances vs Reactive
+// Assuming: Unplanned failure cost = $80k, Planned Maintenance = $2k
+Estimated Cost Savings = 
+SUMX(
+    'Predictions',
+    // If we predict a failure correctly before it happens, we save $78k
+    IF(
+        'Predictions'[failure_probability] >= 0.8,
+        80000 - 2000, 
+        0
+    )
+)
+
+// Total Correctly Predicted Failures
+Predicted Failures Handled = 
+CALCULATE(
+    COUNTROWS('MaintenanceLog'),
+    'MaintenanceLog'[was_predicted] = TRUE()
+)
+
+// ROI (Return on Investment from Model)
+Model ROI = 
+DIVIDE(
+    [Estimated Cost Savings] - [Total Maintenance Cost],
+    [Total Maintenance Cost],
+    0
+)
+
+// -------------------------------------------------------------------------------------------------
+// 5. Sensor Averages (Current State)
+// -------------------------------------------------------------------------------------------------
+
+// Average Sensor Temperature (for anomaly detection in visuals)
+Avg Sensor Temperature = AVERAGE('SensorData'[sensor_temperature])
+
+Avg Sensor Vibration = AVERAGE('SensorData'[sensor_vibration])
+
+// -------------------------------------------------------------------------------------------------
+// 6. Model Performance Metrics (If viewing Model Table)
+// -------------------------------------------------------------------------------------------------
+
+Avg Model F1 Score = AVERAGE('ModelPerformance'[f1_score])
+Avg Model ROC AUC = AVERAGE('ModelPerformance'[roc_auc])

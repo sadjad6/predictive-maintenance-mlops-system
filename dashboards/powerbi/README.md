@@ -50,35 +50,25 @@ Endpoints:
 - Priority matrix (urgency vs. impact)
 - Resource allocation view
 
-## DAX Measures
+## How to Create the Dashboard
 
-Key measures to create in Power BI:
+This dashboard is built by assembling the provided data model and measures. Follow these steps to build the report in Power BI Desktop:
 
-```dax
-// Health Score
-Health Score = 
-    AVERAGE('Predictions'[health_score]) * 100
+### 1. Build the Data Model
+The structure of your tables and their relationships is defined in `data_model.json`.
 
-// Annual Savings
-Annual Savings = 
-    SUMX(
-        'Predictions',
-        'Predictions'[failure_probability] * [Avg Failure Cost]
-        - [Maintenance Cost]
-    )
+1. **Import Data:** Use "Get Data" to import your datasets (e.g., Parquet files from `data/processed/`, or live connections to the REST API). 
+2. **Rename Tables & Columns:** Ensure the imported table names and column names match exactly what is specified in `data_model.json` (e.g., `Predictions`, `SensorData`, `MaintenanceLog`).
+3. **Set Data Types:** Verify that the data types in Power Query match the types defined in the JSON file (Int64, Double, Boolean, DateTime).
+4. **Create Relationships:** Go to the Model view in Power BI. Create relationships between the tables exactly as specified in the `"relationships"` array of the JSON file (e.g., a many-to-one relationship from `Predictions[engine_id]` to `SensorData[engine_id]`).
 
-// Machines at Risk
-Critical Machines = 
-    COUNTROWS(
-        FILTER('Predictions', 'Predictions'[risk_level] = "critical")
-    )
-```
+### 2. Add DAX Measures
+Once the data model is built, you need to add the calculated measures.
 
-## Setup Instructions
+1. Open the `measures.dax` file located in this directory.
+2. In Power BI, right-click on the appropriate table (typically the `Predictions` table for most KPIs) and select **New Measure**.
+3. Copy and paste each DAX formula from the `measures.dax` file one by one into the formula bar.
+4. Ensure the measures are formatted correctly (e.g., format cost measures as Currency, percentages as Percentage).
 
-1. Open Power BI Desktop
-2. Get Data → Web → Enter API base URL
-3. Import Parquet files from `data/` directory
-4. Create relationships using `engine_id` as key
-5. Apply the DAX measures above
-6. Use the data model from `data_model.json`
+### 3. Visualize
+With the model and measures in place, you can now build the visualizations described in the **Dashboard Pages** section above using standard Power BI visual types.
