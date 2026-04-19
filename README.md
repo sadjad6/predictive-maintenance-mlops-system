@@ -1,5 +1,7 @@
 # 🏭 Predictive Maintenance MLOps System
 
+![Predictive Maintenance MLOps System Banner](./hero_banner.jpeg)
+
 **Production-grade predictive maintenance for industrial machinery** — predicting failures before they happen, estimating remaining useful life, and translating ML predictions into actionable business outcomes.
 
 [![CI](https://github.com/your-org/predictive-maintenance-mlops-system/actions/workflows/ci.yml/badge.svg)](https://github.com/your-org/predictive-maintenance-mlops-system/actions/workflows/ci.yml)
