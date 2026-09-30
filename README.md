@@ -1,7 +1,5 @@
 # 🏭 Predictive Maintenance MLOps System
 
-![Predictive Maintenance MLOps System Banner](./hero_banner.jpeg)
-
 **Predictive-maintenance ML prototype** using simulated turbofan sensor data. A Prefect flow generates data, creates features and labels, compares failure-classification and remaining-useful-life (RUL) models, and saves trained models. FastAPI endpoints and a Plotly Dash demonstration dashboard are included.
 
 [![CI](https://github.com/sadjad6/predictive-maintenance-mlops-system/actions/workflows/ci.yml/badge.svg)](https://github.com/sadjad6/predictive-maintenance-mlops-system/actions/workflows/ci.yml)
