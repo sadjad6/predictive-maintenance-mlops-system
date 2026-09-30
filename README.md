@@ -2,56 +2,39 @@
 
 ![Predictive Maintenance MLOps System Banner](./hero_banner.jpeg)
 
-**Production-grade predictive maintenance for industrial machinery** — predicting failures before they happen, estimating remaining useful life, and translating ML predictions into actionable business outcomes.
+**Predictive-maintenance ML prototype** using simulated turbofan sensor data. A Prefect flow generates data, creates features and labels, compares failure-classification and remaining-useful-life (RUL) models, and saves trained models. FastAPI endpoints and a Plotly Dash demonstration dashboard are included.
 
-[![CI](https://github.com/your-org/predictive-maintenance-mlops-system/actions/workflows/ci.yml/badge.svg)](https://github.com/your-org/predictive-maintenance-mlops-system/actions/workflows/ci.yml)
+[![CI](https://github.com/sadjad6/predictive-maintenance-mlops-system/actions/workflows/ci.yml/badge.svg)](https://github.com/sadjad6/predictive-maintenance-mlops-system/actions/workflows/ci.yml)
 [![Python 3.12](https://img.shields.io/badge/python-3.12-blue.svg)](https://www.python.org/downloads/release/python-312/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ---
 
 ## 🎯 Business Problem
 
-Unplanned machine downtime costs the manufacturing industry **$50B+ annually**. This system provides:
+The repository demonstrates these predictive-maintenance workflows on **synthetic C-MAPSS-style data**:
 
 - **Failure Prediction** — Classify machines likely to fail within a configurable time window
 - **Remaining Useful Life (RUL)** — Estimate how many operating cycles remain before failure
-- **Anomaly Detection** — Detect unusual sensor behavior before it escalates
-- **What-If Simulation** — Model maintenance timing scenarios and their financial impact
-- **Business KPIs** — Translate predictions into cost savings, downtime reduction, and ROI
+- **Anomaly Endpoint** — Flag unusual sensor values with a heuristic z-score rule
+- **What-If Simulation** — Explore maintenance scenarios with assumption-based formulas
+- **Business KPIs** — Explore illustrative cost, downtime, and ROI assumptions
 
 ## 🏗️ Architecture
 
+```text
+Synthetic turbofan sensor data → validation → features and labels
+                                           ↓
+                                 Prefect training flow
+                                           ↓
+                     Classification and RUL model comparison
+                                           ↓
+                                  Saved model artifacts
+
+Separate demonstrations: FastAPI endpoints · Plotly Dash UI
+Deployment configuration: Docker Compose · Cloud Run workflow
 ```
-┌──────────────────────────────────────────────────────────────┐
-│                    DATA LAYER                                │
-│  IoT Simulator → Ingestion Pipeline → Data Validation        │
-│                                                              │
-├──────────────────────────────────────────────────────────────┤
-│                 FEATURE ENGINEERING                          │
-│  Rolling Stats → Lag Features → Rate of Change → Labels      │
-│                                                              │
-├──────────────────────────────────────────────────────────────┤
-│                  MODELING LAYER                              │
-│  LogReg │ Random Forest │ XGBoost │ LightGBM │ LSTM         │
-│  Isolation Forest │ Autoencoder (Anomaly Detection)          │
-│                                                              │
-├──────────────────────────────────────────────────────────────┤
-│                   EVALUATION                                 │
-│  ROC-AUC │ PR-AUC │ F1 │ RMSE │ MAE │ Cost-Sensitive        │
-│  SHAP Explainability │ Model Comparison                      │
-│                                                              │
-├──────────────────────────────────────────────────────────────┤
-│                   DEPLOYMENT                                 │
-│  FastAPI Service → Docker → GCP Cloud Run                    │
-│  Prefect Orchestration → CI/CD (GitHub Actions)              │
-│                                                              │
-├──────────────────────────────────────────────────────────────┤
-│                   BI LAYER                                   │
-│  Interactive Dashboard (Plotly Dash)                          │
-│  Power BI (Executive) │ Tableau (Analytical)                 │
-└──────────────────────────────────────────────────────────────┘
-```
+
+The default training flow compares logistic regression, random forest, XGBoost, and LightGBM classifiers, plus random forest, XGBoost, and LightGBM RUL regressors. LSTM and anomaly-model classes are present, but are not part of this default flow. The Power BI and Tableau folders contain dashboard specifications, not finished workbook files.
 
 ## 🚀 Quick Start
 
@@ -64,7 +47,7 @@ Unplanned machine downtime costs the manufacturing industry **$50B+ annually**. 
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-org/predictive-maintenance-mlops-system.git
+git clone https://github.com/sadjad6/predictive-maintenance-mlops-system.git
 cd predictive-maintenance-mlops-system
 
 # Install dependencies
@@ -79,6 +62,8 @@ uv run uvicorn src.api.app:app --reload --port 8000
 # Start the dashboard
 uv run python -m src.dashboards.web_dashboard
 ```
+
+The API loader looks for `models/best_classifier` and `models/best_regressor`; the default training flow saves models under their individual names. Until those paths are supplied, failure and RUL endpoints use the API's heuristic fallback. The dashboard displays seeded demonstration data.
 
 ### Docker
 
@@ -118,40 +103,22 @@ curl -X POST http://localhost:8000/api/v1/predict/failure \
 
 ## 📊 Models & Results
 
-| Model | Task | ROC-AUC | F1 | RMSE |
-|-------|------|---------|----|----- |
-| Logistic Regression | Classification | 0.82 | 0.71 | — |
-| Random Forest | Classification | 0.91 | 0.83 | — |
-| XGBoost | Classification | **0.94** | **0.87** | — |
-| LightGBM | Classification | 0.93 | 0.86 | — |
-| LSTM | Classification | 0.90 | 0.82 | — |
-| XGBoost | RUL Regression | — | — | **18.3** |
-| LightGBM | RUL Regression | — | — | 19.1 |
-
-*Results on simulated C-MAPSS-style turbofan degradation data.*
+The training flow uses time-series cross-validation and computes classification ROC-AUC/F1 and RUL RMSE/MAE. Run it to produce results for the generated dataset. The repository does not include a reproducible benchmark report or saved model artifacts supporting fixed performance figures.
 
 ## 💰 Business Impact
 
-| Metric | Value |
-|--------|-------|
-| Failure Detection Rate | 87% |
-| False Alarm Rate | 8% |
-| Annual Cost Savings (100 machines) | **$2.4M** |
-| Downtime Reduction | 72% |
-| ROI (Year 1) | 4,700% |
-
-*Assumptions: $10K/hr downtime cost, 8hr avg repair, $2K preventive maintenance.*
+The dashboard demonstrates cost and ROI calculations using configurable assumptions and seeded example predictions. Its figures are scenarios, not measured savings from an industrial deployment.
 
 ## 🔧 Technology Stack
 
-- **ML**: scikit-learn, XGBoost, LightGBM, PyTorch
+- **Default training flow**: scikit-learn, XGBoost, LightGBM
 - **API**: FastAPI, Pydantic v2, Uvicorn
 - **Dashboard**: Plotly Dash
 - **Orchestration**: Prefect
 - **Explainability**: SHAP
 - **Containerization**: Docker, Docker Compose
 - **CI/CD**: GitHub Actions
-- **Cloud**: GCP Cloud Run, Cloud Build
+- **Deployment configuration**: GCP Cloud Run, Cloud Build
 - **Quality**: pytest, ruff, mypy
 
 ## 🧪 Testing
@@ -170,4 +137,6 @@ uv run ruff check src/ tests/
 
 ## 📄 License
 
-MIT License — see [LICENSE](LICENSE) for details.
+No license file is present in this repository. Add one before stating reuse terms.
+
+
