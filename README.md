@@ -135,6 +135,6 @@ uv run ruff check src/ tests/
 
 ## 📄 License
 
-No license file is present in this repository. Add one before stating reuse terms.
+The README's stated license is MIT, but a corresponding `LICENSE` file is not included in the repository.
 
 
